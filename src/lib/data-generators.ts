@@ -146,25 +146,82 @@ export function realisticTimestamp(startDate: Date, endDate: Date): Date {
 // ============================================
 
 /**
- * Moroccan locations (realistic research locations)
+ * RIF MOUNTAINS REGION - Specific locations with precise coordinates
+ * All data generation is focused on this region in Northern Morocco
  */
-export const MOROCCAN_LOCATIONS = [
-  "Parc National d'Ifrane",
-  "Parc National de Toubkal",
-  "Réserve de Souss-Massa",
-  "Mer Méditerranée - Al Hoceima",
-  "Océan Atlantique - Casablanca",
-  "Parc National de Talassemtane",
-  "Atlas Moyen - Azrou",
-  "Désert de Merzouga",
-  "Oued Tensift",
-  "Lac de Tislit",
-  "Réserve de Merja Zerga",
-  "Plateau central - Béni Mellal",
-  "Zone côtière - Essaouira",
-  "Forêt de la Maâmora",
-  "Oasis de Tafilalet",
+export interface RifLocation {
+  name: string;
+  latitude: number;
+  longitude: number;
+  elevation?: number; // meters
+  type: "city" | "mountain" | "forest" | "coast" | "river" | "reserve";
+}
+
+export const RIF_LOCATIONS: RifLocation[] = [
+  // Major cities and towns
+  { name: "Chefchaouen", latitude: 35.1714, longitude: -5.2694, elevation: 564, type: "city" },
+  { name: "Tétouan", latitude: 35.5764, longitude: -5.3714, elevation: 80, type: "city" },
+  { name: "Al Hoceima", latitude: 35.2494, longitude: -3.9373, elevation: 37, type: "city" },
+  { name: "Taza", latitude: 34.2144, longitude: -4.0089, elevation: 510, type: "city" },
+  { name: "Taounate", latitude: 34.5364, longitude: -4.6397, elevation: 565, type: "city" },
+  { name: "Ketama", latitude: 34.8847, longitude: -4.5872, elevation: 1320, type: "city" },
+  { name: "Ouezzane", latitude: 34.8069, longitude: -5.5858, elevation: 302, type: "city" },
+  { name: "Fès", latitude: 34.0331, longitude: -4.9997, elevation: 410, type: "city" },
+  
+  // Mountains and peaks
+  { name: "Jbel Tidirhine", latitude: 35.1358, longitude: -4.6231, elevation: 2456, type: "mountain" },
+  { name: "Jbel Bou Naceur", latitude: 34.8806, longitude: -4.4233, elevation: 3340, type: "mountain" },
+  { name: "Jbel Talassemtane", latitude: 35.0292, longitude: -5.0267, elevation: 2105, type: "mountain" },
+  { name: "Jbel Lakraa", latitude: 35.2158, longitude: -4.7989, elevation: 2159, type: "mountain" },
+  { name: "Jbel Kelti", latitude: 35.0944, longitude: -4.7014, elevation: 1925, type: "mountain" },
+  
+  // Forests and natural reserves
+  { name: "Parc National de Talassemtane", latitude: 35.0300, longitude: -5.0167, elevation: 1800, type: "reserve" },
+  { name: "Forêt de Chefchaouen", latitude: 35.1800, longitude: -5.2500, elevation: 800, type: "forest" },
+  { name: "Cèdre de Chefchaouen", latitude: 35.1917, longitude: -5.2750, elevation: 1200, type: "forest" },
+  { name: "Forêt de Ketama", latitude: 34.9000, longitude: -4.5833, elevation: 1400, type: "forest" },
+  { name: "Réserve de Bouhachem", latitude: 35.0639, longitude: -5.3333, elevation: 1100, type: "reserve" },
+  
+  // Coastal areas
+  { name: "Plage d'Al Hoceima", latitude: 35.2472, longitude: -3.9367, elevation: 0, type: "coast" },
+  { name: "Calas de Cala Iris", latitude: 35.2731, longitude: -3.9828, elevation: 0, type: "coast" },
+  { name: "Plage de Tétouan", latitude: 35.6000, longitude: -5.3333, elevation: 0, type: "coast" },
+  { name: "Côte Méditerranéenne - RIF", latitude: 35.2500, longitude: -3.9500, elevation: 0, type: "coast" },
+  
+  // Rivers and water bodies
+  { name: "Oued Laou", latitude: 35.4458, longitude: -5.2231, elevation: 0, type: "river" },
+  { name: "Oued Moulouya", latitude: 35.1167, longitude: -2.3400, elevation: 0, type: "river" },
+  { name: "Oued Martil", latitude: 35.6167, longitude: -5.3167, elevation: 0, type: "river" },
+  { name: "Oued Rhis", latitude: 35.1667, longitude: -5.2833, elevation: 400, type: "river" },
+  
+  // Rural areas and valleys
+  { name: "Vallée de Oued Laou", latitude: 35.2667, longitude: -5.1667, elevation: 300, type: "river" },
+  { name: "Vallée de Chefchaouen", latitude: 35.1500, longitude: -5.2333, elevation: 600, type: "river" },
+  { name: "Zone rurale - Talassemtane", latitude: 35.0000, longitude: -5.0333, elevation: 1400, type: "reserve" },
 ];
+
+/**
+ * Get a random location from RIF_LOCATIONS with slight random variation in coordinates
+ * to create realistic clustering around known locations
+ */
+export function getRandomRifLocation(): { name: string; latitude: number; longitude: number } {
+  const location = randomChoice(RIF_LOCATIONS);
+  
+  // Add small random variation (100-500m) to create realistic clustering
+  const latVariation = randomFloat(-0.004, 0.004); // ~500m max
+  const lonVariation = randomFloat(-0.004, 0.004);
+  
+  return {
+    name: location.name,
+    latitude: location.latitude + latVariation,
+    longitude: location.longitude + lonVariation,
+  };
+}
+
+/**
+ * Get locations only (for backward compatibility)
+ */
+export const MOROCCAN_LOCATIONS = RIF_LOCATIONS.map(loc => loc.name);
 
 /**
  * Generate realistic user data
@@ -368,21 +425,16 @@ export function generateMissions(
     "Évaluation de l'état de conservation",
   ];
   
-  const locations = MOROCCAN_LOCATIONS;
-  
-  // Morocco coordinates (approximate bounds)
-  const minLat = 21.0;
-  const maxLat = 36.0;
-  const minLon = -17.0;
-  const maxLon = -1.0;
-  
   const missions = [];
+  
+  // RIF MOUNTAINS REGION - Focus only on this area
+  // RIF bounds: Lat 34.2-35.6, Lon -6.0 to -3.5
   
   // Generate missions with realistic distribution over time
   // More missions in spring/summer (field season)
   for (let i = 0; i < count; i++) {
     const missionType = randomChoice(missionTemplates);
-    const location = randomChoice(locations);
+    const rifLocation = getRandomRifLocation();
     const creatorId = randomChoice(userIds);
     
     // Bias towards warmer months (March-September)
@@ -417,20 +469,17 @@ export function generateMissions(
       status = "in_progress";
     }
     
-    const latitude = randomFloat(minLat, maxLat);
-    const longitude = randomFloat(minLon, maxLon);
-    
-    const objectives = `${missionType} dans la région de ${location}. Objectifs: collecte de données, observation des espèces, évaluation de l'état écologique.`;
+    const objectives = `${missionType} dans la région du Rif - ${rifLocation.name}. Objectifs: collecte de données, observation des espèces, évaluation de l'état écologique dans les montagnes du Rif.`;
     
     missions.push({
-      title: `${missionType} - ${location}`,
-      description: `Mission de recherche scientifique dans la région de ${location}`,
+      title: `${missionType} - ${rifLocation.name}`,
+      description: `Mission de recherche scientifique dans la région du Rif (${rifLocation.name})`,
       creatorId,
       startDate: missionStart,
       endDate: missionEnd,
-      location,
-      latitude,
-      longitude,
+      location: rifLocation.name,
+      latitude: rifLocation.latitude,
+      longitude: rifLocation.longitude,
       objectives,
       status,
       createdAt: addDays(missionStart, -randomRange(7, 30)), // Created 1-4 weeks before
@@ -612,12 +661,15 @@ export function generateClimateData(
   windDirection: number;
   precipitation: number;
 }> {
+  // RIF REGION Weather Stations
   const stations = [
-    { id: "ST001", name: "Station Ifrane", lat: 33.5, lon: -5.1 },
-    { id: "ST002", name: "Station Casablanca", lat: 33.6, lon: -7.6 },
-    { id: "ST003", name: "Station Marrakech", lat: 31.6, lon: -8.0 },
-    { id: "ST004", name: "Station Tanger", lat: 35.8, lon: -5.8 },
-    { id: "ST005", name: "Station Agadir", lat: 30.4, lon: -9.6 },
+    { id: "ST001", name: "Station Chefchaouen", lat: 35.1714, lon: -5.2694 },
+    { id: "ST002", name: "Station Tétouan", lat: 35.5764, lon: -5.3714 },
+    { id: "ST003", name: "Station Al Hoceima", lat: 35.2494, lon: -3.9373 },
+    { id: "ST004", name: "Station Taza", lat: 34.2144, lon: -4.0089 },
+    { id: "ST005", name: "Station Ketama", lat: 34.8847, lon: -4.5872 },
+    { id: "ST006", name: "Station Jbel Tidirhine", lat: 35.1358, lon: -4.6231 },
+    { id: "ST007", name: "Station Parc Talassemtane", lat: 35.0300, lon: -5.0167 },
   ];
   
   const data = [];
@@ -1026,15 +1078,13 @@ export function generateSensorData(
     { id: "LIGHT-001", type: "Light", unit: "lux", min: 1000, max: 100000 },
   ];
 
-  const locations = MOROCCAN_LOCATIONS;
   const data = [];
   
+  // RIF MOUNTAINS REGION - Focus only on this area
   for (let i = 0; i < count; i++) {
     const sensor = randomChoice(sensorTypes);
-    const location = randomChoice(locations);
+    const rifLocation = getRandomRifLocation();
     const timestamp = realisticTimestamp(startDate, endDate);
-    const latitude = randomRange(28000, 36000) / 1000;
-    const longitude = randomRange(-12000, -5000) / 1000;
     
     // Generate realistic value based on sensor type
     const value = randomFloat(sensor.min, sensor.max);
@@ -1042,13 +1092,13 @@ export function generateSensorData(
     data.push({
       sensorId: sensor.id,
       sensorType: sensor.type,
-      location,
-      latitude,
-      longitude,
+      location: rifLocation.name,
+      latitude: rifLocation.latitude,
+      longitude: rifLocation.longitude,
       timestamp,
       value: Math.round(value * 100) / 100,
       unit: sensor.unit,
-      metadata: JSON.stringify({ quality: "good", battery: randomRange(70, 100) }),
+      metadata: JSON.stringify({ quality: "good", battery: randomRange(70, 100), region: "RIF" }),
     });
   }
   
@@ -1687,11 +1737,11 @@ export function generateUserPermissions(
     
     const userModules = randomChoices(modules, randomRange(2, 5));
     
-    for (const module of userModules) {
+    for (const moduleName of userModules) {
       // Donner READ à tous pour leurs modules
       userPerms.push({
         userId,
-        module,
+        module: moduleName,
         permission: "READ" as const,
       });
 
@@ -1699,7 +1749,7 @@ export function generateUserPermissions(
       if (Math.random() > 0.3) {
         userPerms.push({
           userId,
-          module,
+          module: moduleName,
           permission: "WRITE" as const,
         });
       }
@@ -1708,7 +1758,7 @@ export function generateUserPermissions(
       if (Math.random() > 0.8) {
         userPerms.push({
           userId,
-          module,
+          module: moduleName,
           permission: "VALIDATE" as const,
         });
       }
