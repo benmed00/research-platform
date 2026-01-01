@@ -5,16 +5,21 @@ on:
   schedule:
     - cron: '0 0 * * 0' # Weekly on Sunday
 
+permissions:
+  contents: write
+
 jobs:
   update-headers:
     name: Update File Headers
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -23,12 +28,14 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline --no-audit
       
       - name: Update file headers
         run: npm run headers:update
         env:
           GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
+        continue-on-error: false
       
       - name: Check for changes
         id: verify-changed-files
@@ -39,7 +46,7 @@ jobs:
             echo "changed=false" >> $GITHUB_OUTPUT
           fi
       
-      - name: Commit changes
+      - name: Commit and push changes
         if: steps.verify-changed-files.outputs.changed == 'true'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
@@ -47,4 +54,5 @@ jobs:
           git add .
           git commit -m "chore: update file headers [skip ci]"
           git push
+        continue-on-error: false
 

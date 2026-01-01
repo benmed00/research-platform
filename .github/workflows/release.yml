@@ -5,10 +5,14 @@ on:
     tags:
       - 'v*.*.*'
 
+permissions:
+  contents: write
+
 jobs:
   release:
     name: Create Release
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     
     steps:
       - name: Checkout code
@@ -23,20 +27,32 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: Generate Prisma Client
+        run: npm run db:generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:password@localhost:5432/test?schema=public' }}
+        continue-on-error: false
       
       - name: Build application
         run: npm run build
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:password@localhost:5432/test?schema=public' }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'release-build-secret' }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL || 'https://research-platform.ma' }}
+        continue-on-error: false
       
       - name: Generate changelog
         id: changelog
         run: |
           echo "## What's Changed" >> $GITHUB_STEP_SUMMARY
-          git log --pretty=format:"- %s (%h)" $(git describe --tags --abbrev=0 HEAD^)..HEAD >> $GITHUB_STEP_SUMMARY || echo "- Initial release" >> $GITHUB_STEP_SUMMARY
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            git log --pretty=format:"- %s (%h)" ${PREV_TAG}..HEAD >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Initial release" >> $GITHUB_STEP_SUMMARY
+          fi
       
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -44,6 +60,8 @@ jobs:
           files: |
             .next/**
           generate_release_notes: true
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
