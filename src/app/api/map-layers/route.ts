@@ -4,9 +4,9 @@
  * @author 1
  * @created 2026-01-01
  * @updated 2026-01-01
- * @updates 1
- * @lines 24
- * @size 0.54 KB
+ * @updates 2
+ * @lines 30
+ * @size 0.63 KB
  */
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";

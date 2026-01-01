@@ -4,9 +4,9 @@
  * @author 1
  * @created 2026-01-01
  * @updated 2026-01-01
- * @updates 1
- * @lines 27
- * @size 1.30 KB
+ * @updates 2
+ * @lines 37
+ * @size 1.48 KB
  */
 import * as React from "react";
 import { cn } from "@/lib/utils";

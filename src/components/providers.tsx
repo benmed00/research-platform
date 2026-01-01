@@ -4,9 +4,9 @@
  * @author 1
  * @created 2026-01-01
  * @updated 2026-01-01
- * @updates 1
- * @lines 17
- * @size 0.46 KB
+ * @updates 2
+ * @lines 27
+ * @size 0.64 KB
  */
 "use client";
 
