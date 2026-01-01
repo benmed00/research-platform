@@ -1,0 +1,15 @@
+#!/bin/sh
+#
+# Pre-commit hook to update file headers before committing
+#
+
+echo "Updating file headers..."
+
+# Run the header update script
+npm run headers:update --silent
+
+# Add updated files to staging
+git add -u
+
+echo "File headers updated."
+

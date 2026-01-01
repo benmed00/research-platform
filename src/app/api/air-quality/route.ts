@@ -1,0 +1,106 @@
+/**
+ * @file route.ts
+ * @description src/app/api/air-quality/route.ts
+ * @author 1
+ * @created 2026-01-01
+ * @updated 2026-01-01
+ * @updates 1
+ * @lines 97
+ * @size 2.61 KB
+ */
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    }
+
+    const data = await request.json();
+    const {
+      location,
+      latitude,
+      longitude,
+      date,
+      pm25,
+      pm10,
+      no2,
+      o3,
+      co,
+      notes,
+    } = data;
+
+    const airQuality = await prisma.airQuality.create({
+      data: {
+        location,
+        latitude: latitude ? parseFloat(latitude) : undefined,
+        longitude: longitude ? parseFloat(longitude) : undefined,
+        date: new Date(date),
+        pm25: pm25 ? parseFloat(pm25) : undefined,
+        pm10: pm10 ? parseFloat(pm10) : undefined,
+        no2: no2 ? parseFloat(no2) : undefined,
+        o3: o3 ? parseFloat(o3) : undefined,
+        co: co ? parseFloat(co) : undefined,
+        notes: notes || undefined,
+      },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        userId: session.user.id,
+        action: "CREATE",
+        entity: "AirQuality",
+        entityId: airQuality.id,
+        changes: JSON.stringify({ location, date }),
+      },
+    });
+
+    return NextResponse.json(airQuality, { status: 201 });
+  } catch (error: any) {
+    console.error("Error creating air quality data:", error);
+    return NextResponse.json(
+      { error: error.message || "Erreur lors de la création" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get("limit") || "100");
+    const offset = parseInt(searchParams.get("offset") || "0");
+
+    const [airQuality, total] = await Promise.all([
+      prisma.airQuality.findMany({
+        take: limit,
+        skip: offset,
+        orderBy: { date: "desc" },
+      }),
+      prisma.airQuality.count(),
+    ]);
+
+    return NextResponse.json({
+      data: airQuality,
+      total,
+      limit,
+      offset,
+    });
+  } catch (error) {
+    console.error("Error fetching air quality data:", error);
+    return NextResponse.json(
+      { error: "Erreur lors de la récupération" },
+      { status: 500 }
+    );
+  }
+}
+

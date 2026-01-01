@@ -1,0 +1,777 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// GESTION DES UTILISATEURS & SESSIONS
+// ============================================
+
+enum UserRole {
+  DIRECTEUR_SCIENTIFIQUE
+  DIRECTEUR_ADMINISTRATIF_FINANCIER
+  BOTANISTE
+  ZOOLOGISTE_TERRESTRE
+  BIOLOGISTE_MARIN
+  HYDROBIOLOGISTE
+  GEOLOGUE
+  CLIMATOLOGUE
+  DATA_SCIENTIST_SIG
+  INGENIEUR_PLATEFORMES
+  TECHNICIEN_LABORATOIRE
+  TECHNICIEN_TERRAIN
+  MARIN_PILOTE_BATEAU
+  LOGISTICIEN
+  COMMUNICATION_EDITION
+}
+
+enum Permission {
+  READ
+  WRITE
+  VALIDATE
+  DELETE
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  firstName     String
+  lastName      String
+  role          UserRole
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  sessions      Session[]
+  loginLogs     LoginLog[]
+  employee      Employee?
+  permissions   UserPermission[]
+  createdMissions Mission[] @relation("MissionCreator")
+  missionTeams  MissionTeam[]
+  documents     Document[]
+  auditLogs     AuditLog[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+model LoginLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress String?
+  userAgent String?
+  success   Boolean
+  timestamp DateTime @default(now())
+  
+  @@index([userId])
+  @@index([timestamp])
+}
+
+model UserPermission {
+  id         String     @id @default(cuid())
+  userId     String
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module     String
+  permission Permission
+  createdAt  DateTime   @default(now())
+  
+  @@unique([userId, module, permission])
+  @@index([userId])
+}
+
+// ============================================
+// GESTION RH
+// ============================================
+
+model Employee {
+  id              String    @id @default(cuid())
+  userId          String?   @unique
+  user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  employeeNumber  String    @unique
+  hireDate        DateTime
+  contractType    String    // CDI, CDD, Stage, etc.
+  contractStart   DateTime
+  contractEnd      DateTime?
+  baseSalary      Decimal   @db.Decimal(10, 2)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  salaries        Salary[]
+  bonuses         Bonus[]
+  leaves          Leave[]
+  evaluations     Evaluation[]
+  missionAssignments MissionTeam[]
+  
+  @@index([userId])
+}
+
+model Salary {
+  id          String   @id @default(cuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  amount      Decimal  @db.Decimal(10, 2)
+  month       Int
+  year        Int
+  paidAt      DateTime?
+  createdAt   DateTime @default(now())
+  
+  @@unique([employeeId, month, year])
+  @@index([employeeId])
+}
+
+model Bonus {
+  id          String   @id @default(cuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type        String   // terrain, mer, risques
+  amount      Decimal  @db.Decimal(10, 2)
+  reason      String?
+  month       Int
+  year        Int
+  paidAt      DateTime?
+  createdAt   DateTime @default(now())
+  
+  @@index([employeeId])
+}
+
+model Leave {
+  id          String    @id @default(cuid())
+  employeeId  String
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type        String    // congé, maladie, etc.
+  startDate   DateTime
+  endDate     DateTime
+  status      String    @default("pending") // pending, approved, rejected
+  reason      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([employeeId])
+}
+
+model Evaluation {
+  id          String   @id @default(cuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  evaluatorId String
+  period      String   // Q1, Q2, Q3, Q4, Annual
+  year        Int
+  score       Int?     // 1-10
+  comments    String?
+  createdAt   DateTime @default(now())
+  
+  @@index([employeeId])
+}
+
+// ============================================
+// COMPTABILITÉ & FINANCES
+// ============================================
+
+model Budget {
+  id          String   @id @default(cuid())
+  year        Int      @unique
+  totalAmount Decimal  @db.Decimal(12, 2)
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  allocations BudgetAllocation[]
+  expenses    Expense[]
+}
+
+model BudgetAllocation {
+  id          String   @id @default(cuid())
+  budgetId    String
+  budget      Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  category    String
+  amount      Decimal  @db.Decimal(12, 2)
+  description String?
+  createdAt   DateTime @default(now())
+  
+  @@index([budgetId])
+}
+
+model Grant {
+  id          String   @id @default(cuid())
+  name        String
+  provider    String
+  amount      Decimal  @db.Decimal(12, 2)
+  startDate   DateTime
+  endDate     DateTime
+  status      String   @default("active") // active, completed, cancelled
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  expenses    Expense[]
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  budgetId    String?
+  budget      Budget?  @relation(fields: [budgetId], references: [id], onDelete: SetNull)
+  grantId     String?
+  grant       Grant?   @relation(fields: [grantId], references: [id], onDelete: SetNull)
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  category    String
+  amount      Decimal  @db.Decimal(10, 2)
+  description String
+  date        DateTime
+  invoiceId   String?
+  invoice     Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  
+  @@index([budgetId])
+  @@index([grantId])
+  @@index([projectId])
+  @@index([date])
+}
+
+model Invoice {
+  id          String   @id @default(cuid())
+  number      String   @unique
+  supplierId  String?
+  supplier    Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  amount      Decimal  @db.Decimal(10, 2)
+  date        DateTime
+  dueDate     DateTime
+  status      String   @default("pending") // pending, paid, overdue
+  fileUrl     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  expenses    Expense[]
+  payments    Payment[]
+  
+  @@index([supplierId])
+  @@index([status])
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  invoiceId  String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  amount      Decimal  @db.Decimal(10, 2)
+  date        DateTime
+  method      String   // bank transfer, check, cash
+  reference   String?
+  createdAt   DateTime @default(now())
+  
+  @@index([invoiceId])
+}
+
+model Supplier {
+  id          String   @id @default(cuid())
+  name        String
+  contact     String?
+  email       String?
+  phone       String?
+  address     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  invoices    Invoice[]
+}
+
+// ============================================
+// GESTION MATÉRIEL & LOGISTIQUE
+// ============================================
+
+enum EquipmentCategory {
+  VEHICULE
+  BATEAU
+  EQUIPEMENT_SCIENTIFIQUE
+  INFORMATIQUE
+  CAMPING_TERRAIN
+  LABORATOIRE
+}
+
+enum EquipmentStatus {
+  AVAILABLE
+  IN_USE
+  MAINTENANCE
+  RETIRED
+}
+
+model Equipment {
+  id            String            @id @default(cuid())
+  name          String
+  category      EquipmentCategory
+  serialNumber  String?           @unique
+  purchaseDate  DateTime?
+  purchasePrice Decimal?          @db.Decimal(10, 2)
+  lifespan      Int?              // en années
+  status        EquipmentStatus   @default(AVAILABLE)
+  location      String?
+  description   String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  
+  // Relations
+  maintenances  Maintenance[]
+  missionEquipment MissionEquipment[]
+  
+  @@index([category])
+  @@index([status])
+}
+
+model Maintenance {
+  id          String    @id @default(cuid())
+  equipmentId String
+  equipment   Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  type        String    // preventive, corrective
+  description String
+  cost        Decimal?  @db.Decimal(10, 2)
+  date        DateTime
+  nextDueDate DateTime?
+  createdAt   DateTime  @default(now())
+  
+  @@index([equipmentId])
+}
+
+// ============================================
+// MISSIONS & CAMPAGNES TERRAIN
+// ============================================
+
+model Mission {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  creatorId   String
+  creator     User     @relation("MissionCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  startDate   DateTime
+  endDate     DateTime
+  location    String
+  latitude    Float?
+  longitude   Float?
+  objectives  String?
+  status      String   @default("planned") // planned, in_progress, completed, cancelled
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  teams       MissionTeam[]
+  equipment   MissionEquipment[]
+  report      MissionReport?
+  documents   Document[]
+  speciesObservations SpeciesObservation[]
+  
+  @@index([creatorId])
+  @@index([status])
+  @@index([startDate])
+}
+
+model MissionTeam {
+  id          String   @id @default(cuid())
+  missionId   String
+  mission     Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  employeeId  String?
+  employee    Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  role        String
+  createdAt   DateTime @default(now())
+  
+  @@unique([missionId, userId])
+  @@index([missionId])
+  @@index([userId])
+}
+
+model MissionEquipment {
+  id          String   @id @default(cuid())
+  missionId   String
+  mission     Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  equipmentId String
+  equipment   Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  quantity    Int      @default(1)
+  createdAt   DateTime @default(now())
+  
+  @@unique([missionId, equipmentId])
+  @@index([missionId])
+  @@index([equipmentId])
+}
+
+model MissionReport {
+  id          String   @id @default(cuid())
+  missionId   String   @unique
+  mission     Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  content     String   // Markdown ou HTML
+  summary     String?
+  findings    String?
+  recommendations String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ============================================
+// BASE DE DONNÉES SCIENTIFIQUE - ESPÈCES
+// ============================================
+
+enum SpeciesType {
+  FLORE_TERRESTRE
+  FAUNE_TERRESTRE
+  FAUNE_MARINE
+  ESPECE_EAU_DOUCE
+}
+
+enum IUCNStatus {
+  LC  // Least Concern
+  NT  // Near Threatened
+  VU  // Vulnerable
+  EN  // Endangered
+  CR  // Critically Endangered
+  EW  // Extinct in the Wild
+  EX  // Extinct
+  DD  // Data Deficient
+  NE  // Not Evaluated
+}
+
+model Species {
+  id              String      @id @default(cuid())
+  scientificName  String
+  commonName      String?
+  type            SpeciesType
+  iucnStatus      IUCNStatus?
+  habitat         String?
+  description     String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // Relations
+  observations    SpeciesObservation[]
+  locations       SpeciesLocation[]
+  photos          SpeciesPhoto[]
+  references      SpeciesReference[]
+  
+  @@index([scientificName])
+  @@index([type])
+  @@index([iucnStatus])
+}
+
+model SpeciesLocation {
+  id          String   @id @default(cuid())
+  speciesId   String
+  species     Species  @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+  latitude    Float
+  longitude   Float
+  location    String?
+  observedAt  DateTime
+  observerId  String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  
+  @@index([speciesId])
+  @@index([latitude, longitude])
+}
+
+model SpeciesObservation {
+  id          String   @id @default(cuid())
+  speciesId   String
+  species     Species  @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+  date        DateTime
+  location    String?
+  latitude    Float?
+  longitude   Float?
+  quantity    Int?
+  notes       String?
+  observerId  String?
+  missionId   String?
+  mission     Mission? @relation(fields: [missionId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  
+  @@index([speciesId])
+  @@index([date])
+}
+
+model SpeciesPhoto {
+  id          String   @id @default(cuid())
+  speciesId   String
+  species     Species  @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+  url         String
+  caption     String?
+  takenAt     DateTime?
+  createdAt   DateTime @default(now())
+  
+  @@index([speciesId])
+}
+
+model SpeciesReference {
+  id          String   @id @default(cuid())
+  speciesId   String
+  species     Species  @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+  title       String
+  authors     String?
+  journal     String?
+  year        Int?
+  url         String?
+  createdAt   DateTime @default(now())
+  
+  @@index([speciesId])
+}
+
+// ============================================
+// DONNÉES ENVIRONNEMENTALES
+// ============================================
+
+enum WaterType {
+  MER
+  SOURCE
+  BARRAGE
+}
+
+model WaterQuality {
+  id          String    @id @default(cuid())
+  type        WaterType
+  location    String
+  latitude    Float?
+  longitude   Float?
+  date        DateTime
+  ph          Float?
+  temperature Float?
+  dissolvedO2 Float?
+  turbidity   Float?
+  salinity    Float?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  
+  @@index([type])
+  @@index([date])
+  @@index([latitude, longitude])
+}
+
+model AirQuality {
+  id          String   @id @default(cuid())
+  location    String
+  latitude    Float?
+  longitude   Float?
+  date        DateTime
+  pm25        Float?
+  pm10        Float?
+  no2         Float?
+  o3          Float?
+  co          Float?
+  notes       String?
+  createdAt   DateTime @default(now())
+  
+  @@index([date])
+  @@index([latitude, longitude])
+}
+
+model ClimateData {
+  id          String   @id @default(cuid())
+  stationId   String?
+  location    String
+  latitude    Float?
+  longitude   Float?
+  date        DateTime
+  temperature Float?
+  humidity    Float?
+  pressure    Float?
+  windSpeed   Float?
+  windDirection Float?
+  precipitation Float?
+  notes       String?
+  createdAt   DateTime @default(now())
+  
+  @@index([date])
+  @@index([latitude, longitude])
+}
+
+model GeologyData {
+  id          String   @id @default(cuid())
+  location    String
+  latitude    Float?
+  longitude   Float?
+  date        DateTime
+  soilType    String?
+  rockType    String?
+  composition String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  
+  @@index([date])
+  @@index([latitude, longitude])
+}
+
+model SensorData {
+  id          String   @id @default(cuid())
+  sensorId    String
+  sensorType  String
+  location    String?
+  latitude    Float?
+  longitude   Float?
+  timestamp   DateTime
+  value       Float
+  unit        String?
+  metadata    String?  // JSON
+  createdAt   DateTime @default(now())
+  
+  @@index([sensorId])
+  @@index([timestamp])
+}
+
+// ============================================
+// SIG & CARTOGRAPHIE
+// ============================================
+
+enum LayerType {
+  HABITAT
+  SPECIES
+  STATION_METEO
+  POINT_EAU
+  GEOLOGIE
+  MISSION
+}
+
+model MapLayer {
+  id          String   @id @default(cuid())
+  name        String
+  type        LayerType
+  description String?
+  geojson     String?  // GeoJSON data
+  style       String?  // JSON style configuration
+  isVisible   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([type])
+}
+
+// ============================================
+// GESTION DOCUMENTAIRE
+// ============================================
+
+enum DocumentType {
+  RAPPORT_SCIENTIFIQUE
+  RAPPORT_ADMINISTRATIF
+  DONNEE_BRUTE
+  PUBLICATION
+  AUTRE
+}
+
+model Document {
+  id          String       @id @default(cuid())
+  title       String
+  type        DocumentType
+  description String?
+  fileUrl     String
+  fileName    String
+  fileSize    Int?
+  mimeType    String?
+  version     Int          @default(1)
+  parentId    String?      // Pour le versioning
+  parent      Document?    @relation("DocumentVersion", fields: [parentId], references: [id], onDelete: SetNull)
+  versions     Document[]   @relation("DocumentVersion")
+  authorId    String
+  author      User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  missionId   String?
+  mission     Mission?     @relation(fields: [missionId], references: [id], onDelete: SetNull)
+  isPublic    Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  @@index([type])
+  @@index([authorId])
+  @@index([missionId])
+}
+
+// ============================================
+// ÉDITION & PUBLICATION
+// ============================================
+
+model Publication {
+  id          String   @id @default(cuid())
+  title       String
+  year        Int
+  type        String   // livre_annuel, article, rapport
+  content     String?  // Markdown ou HTML
+  coverImage  String?
+  isPublished Boolean  @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  chapters    PublicationChapter[]
+}
+
+model PublicationChapter {
+  id            String      @id @default(cuid())
+  publicationId String
+  publication   Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  title         String
+  order         Int
+  content       String?     // Markdown ou HTML
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  @@index([publicationId])
+}
+
+// ============================================
+// PROJETS
+// ============================================
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  status      String   @default("active") // active, completed, cancelled
+  budget      Decimal? @db.Decimal(12, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  expenses    Expense[]
+  
+  @@index([status])
+}
+
+// ============================================
+// AUDIT & SÉCURITÉ
+// ============================================
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action      String
+  entity      String
+  entityId    String?
+  changes     String?  // JSON
+  ipAddress   String?
+  userAgent   String?
+  timestamp   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([timestamp])
+}
+

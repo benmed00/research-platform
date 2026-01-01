@@ -1,0 +1,31 @@
+{
+  "name": "research-platform",
+  "description": "ERP and scientific platform for environmental and biodiversity research center in northern Morocco",
+  "homepage": "https://github.com/mbwk25/research-platform",
+  "topics": [
+    "nextjs",
+    "typescript",
+    "prisma",
+    "postgresql",
+    "postgis",
+    "environmental-research",
+    "biodiversity",
+    "erp",
+    "scientific-platform",
+    "research-platform",
+    "maroc",
+    "morocco",
+    "leaflet",
+    "nextauth",
+    "tailwindcss"
+  ],
+  "private": false,
+  "hasIssues": true,
+  "hasProjects": true,
+  "hasWiki": true,
+  "hasDiscussions": true,
+  "allowSquashMerge": true,
+  "allowMergeCommit": true,
+  "allowRebaseMerge": true,
+  "deleteBranchOnMerge": true
+}
