@@ -16,6 +16,10 @@ import Link from "next/link";
 import { Plus, Thermometer } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
+// Force dynamic rendering to avoid build-time database queries
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function ClimateDataPage() {
   const climateData = await prisma.climateData.findMany({
     orderBy: { date: "desc" },

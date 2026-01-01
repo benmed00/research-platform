@@ -34,6 +34,10 @@ const roleLabels: Record<string, string> = {
   COMMUNICATION_EDITION: "Communication / Édition",
 };
 
+// Force dynamic rendering to avoid build-time database queries
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function UsersPage() {
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },

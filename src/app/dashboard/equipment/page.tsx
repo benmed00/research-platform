@@ -32,6 +32,10 @@ const statusLabels: Record<string, string> = {
   RETIRED: "Retiré",
 };
 
+// Force dynamic rendering to avoid build-time database queries
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function EquipmentPage() {
   const [equipment, maintenance] = await Promise.all([
     prisma.equipment.findMany({

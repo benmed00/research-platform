@@ -22,6 +22,10 @@ const waterTypeLabels: Record<string, string> = {
   BARRAGE: "Barrage",
 };
 
+// Force dynamic rendering to avoid build-time database queries
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function WaterQualityPage() {
   const waterQuality = await prisma.waterQuality.findMany({
     orderBy: { date: "desc" },

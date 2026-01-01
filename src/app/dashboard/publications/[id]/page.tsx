@@ -20,6 +20,10 @@ import { ArrowLeft, Edit, BookOpen, FileDown } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { notFound } from "next/navigation";
 
+// Force dynamic rendering to avoid build-time database queries
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function PublicationDetailPage({
   params,
 }: {

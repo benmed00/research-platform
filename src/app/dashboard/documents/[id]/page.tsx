@@ -27,6 +27,10 @@ const typeLabels: Record<string, string> = {
   AUTRE: "Autre",
 };
 
+// Force dynamic rendering to avoid build-time database queries
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function DocumentDetailPage({
   params,
 }: {

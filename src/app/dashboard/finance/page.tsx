@@ -16,6 +16,10 @@ import { Plus, DollarSign, TrendingUp, FileText } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { FinanceCharts } from "@/components/finance-charts";
 
+// Force dynamic rendering to avoid build-time database queries
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function FinancePage() {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;

@@ -17,6 +17,10 @@ import Link from "next/link";
 import { Plus, Edit, Eye, Users } from "lucide-react";
 import { formatDate, formatCurrency } from "@/lib/utils";
 
+// Force dynamic rendering to avoid build-time database queries
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function EmployeesPage() {
   const employees = await prisma.employee.findMany({
     include: {

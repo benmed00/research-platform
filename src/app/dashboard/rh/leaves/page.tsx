@@ -17,6 +17,10 @@ import Link from "next/link";
 import { Plus, Calendar } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
+// Force dynamic rendering to avoid build-time database queries
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function LeavesPage() {
   const leaves = await prisma.leave.findMany({
     include: {

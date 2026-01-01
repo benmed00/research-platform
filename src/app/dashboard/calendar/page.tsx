@@ -11,6 +11,10 @@
 import { prisma } from "@/lib/prisma";
 import { CalendarView } from "@/components/calendar/calendar-view";
 
+// Force dynamic rendering to avoid build-time database queries
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function CalendarPage() {
   // Fetch missions and leaves for the calendar
   const [missions, leaves] = await Promise.all([

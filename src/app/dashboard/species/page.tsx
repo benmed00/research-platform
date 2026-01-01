@@ -23,6 +23,10 @@ const typeLabels: Record<string, string> = {
   ESPECE_EAU_DOUCE: "Espèce Eau Douce",
 };
 
+// Force dynamic rendering to avoid build-time database queries
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const iucnLabels: Record<string, string> = {
   LC: "Préoccupation mineure",
   NT: "Quasi menacé",
