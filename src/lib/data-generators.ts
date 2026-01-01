@@ -4,9 +4,9 @@
  * @author 1
  * @created 2026-01-01
  * @updated 2026-01-01
- * @updates 1
- * @lines 1755
- * @size 50.63 KB
+ * @updates 2
+ * @lines 1853
+ * @size 58.30 KB
  */
 import {
   UserRole,
@@ -299,7 +299,7 @@ export function generateUsers(count: number, startDate: Date): Array<{
 }
 
 /**
- * Generate realistic species data
+ * Generate realistic species data specific to RIF MOUNTAINS region
  */
 export function generateSpecies(count: number): Array<{
   scientificName: string;
@@ -309,76 +309,121 @@ export function generateSpecies(count: number): Array<{
   habitat: string;
   description: string;
 }> {
-  const plantGenera = ["Quercus", "Juniperus", "Pistacia", "Argania", "Cedrus", "Pinus"];
-  const plantSpecies = ["ilex", "thuya", "atlantica", "spinosa", "atlantica", "halepensis"];
-  const plantCommon = ["Chêne vert", "Genévrier thurifère", "Pistachier", "Arganier", "Cèdre", "Pin d'Alep"];
-  
-  const terrestrialFauna = ["Gazella", "Canis", "Vulpes", "Panthera", "Ammotragus"];
-  const terrestrialFaunaSpecies = ["cuvieri", "lupus", "zerda", "leo", "lervia"];
-  const terrestrialCommon = ["Gazelle de Cuvier", "Loup", "Fennec", "Lion de l'Atlas", "Mouflon à manchettes"];
-  
-  const marineFauna = ["Delphinus", "Caretta", "Chelonia", "Thunnus", "Sparus"];
-  const marineSpecies = ["delphis", "caretta", "mydas", "thynnus", "aurata"];
-  const marineCommon = ["Dauphin commun", "Tortue caouanne", "Tortue verte", "Thon rouge", "Dorade"];
-  
-  const freshwater = ["Salmo", "Anguilla", "Luciobarbus", "Oncorhynchus"];
-  const freshwaterSpecies = ["trutta", "anguilla", "maghrebensis", "mykiss"];
-  const freshwaterCommon = ["Truite", "Anguille", "Barbeau", "Truite arc-en-ciel"];
-  
-  const iucnStatuses: IUCNStatus[] = ["LC", "NT", "VU", "EN", "CR", "DD", "NE"];
-  const iucnWeights = [40, 15, 20, 12, 5, 5, 3]; // Most are LC or NT, fewer endangered
-  
-  const habitats = [
-    "Forêt de cèdres", "Steppe aride", "Zone côtière rocheuse",
-    "Oasis", "Prairie de montagne", "Désert", "Zone humide",
-    "Eau douce", "Eau marine côtière", "Eau marine profonde",
+  // RIF-SPECIFIC PLANTS (Flore du Rif)
+  const rifPlants = [
+    { scientific: "Abies pinsapo", common: "Sapin du Maroc", habitat: "Forêt de cèdres du Rif", iucn: "VU" },
+    { scientific: "Quercus canariensis", common: "Chêne zéen", habitat: "Forêt méditerranéenne du Rif", iucn: "LC" },
+    { scientific: "Quercus faginea", common: "Chêne tauzin", habitat: "Forêt de montagne du Rif", iucn: "LC" },
+    { scientific: "Juniperus thurifera", common: "Genévrier thurifère", habitat: "Hautes altitudes du Rif", iucn: "LC" },
+    { scientific: "Pinus pinaster", common: "Pin maritime", habitat: "Versants montagneux du Rif", iucn: "LC" },
+    { scientific: "Cedrus atlantica", common: "Cèdre de l'Atlas", habitat: "Massifs montagneux du Rif", iucn: "EN" },
+    { scientific: "Pistacia atlantica", common: "Pistachier de l'Atlas", habitat: "Forêt méditerranéenne du Rif", iucn: "LC" },
+    { scientific: "Thymus broussonetii", common: "Thym du Rif", habitat: "Garrigues du Rif", iucn: "LC" },
+    { scientific: "Rosa pouzinii", common: "Rose du Rif", habitat: "Zones rocheuses du Rif", iucn: "LC" },
+    { scientific: "Narcissus tazetta", common: "Narcisse des prés", habitat: "Prairies humides du Rif", iucn: "LC" },
+    { scientific: "Iris tingitana", common: "Iris de Tanger", habitat: "Zones humides côtières du Rif", iucn: "NT" },
+    { scientific: "Olea europaea", common: "Olivier sauvage", habitat: "Versants du Rif", iucn: "LC" },
   ];
   
+  // RIF TERRESTRIAL FAUNA (Faune terrestre du Rif)
+  const rifTerrestrialFauna = [
+    { scientific: "Macaca sylvanus", common: "Macaque de Barbarie", habitat: "Forêts de cèdres du Rif", iucn: "EN" },
+    { scientific: "Gazella cuvieri", common: "Gazelle de Cuvier", habitat: "Zones ouvertes du Rif", iucn: "EN" },
+    { scientific: "Ammotragus lervia", common: "Mouflon à manchettes", habitat: "Rochers et falaises du Rif", iucn: "VU" },
+    { scientific: "Canis lupus", common: "Loup gris d'Afrique", habitat: "Forêts montagneuses du Rif", iucn: "EN" },
+    { scientific: "Vulpes vulpes", common: "Renard roux", habitat: "Divers habitats du Rif", iucn: "LC" },
+    { scientific: "Genetta genetta", common: "Genette commune", habitat: "Forêts et zones rocheuses du Rif", iucn: "LC" },
+    { scientific: "Hystrix cristata", common: "Porc-épic à crête", habitat: "Zones boisées du Rif", iucn: "LC" },
+    { scientific: "Lepus capensis", common: "Lièvre du Cap", habitat: "Prairies et garrigues du Rif", iucn: "LC" },
+    { scientific: "Apodemus sylvaticus", common: "Mulot sylvestre", habitat: "Forêts du Rif", iucn: "LC" },
+    { scientific: "Athene noctua", common: "Chouette chevêche", habitat: "Milieux ouverts du Rif", iucn: "LC" },
+    { scientific: "Buteo rufinus", common: "Buse féroce", habitat: "Zones montagneuses du Rif", iucn: "LC" },
+    { scientific: "Falco peregrinus", common: "Faucon pèlerin", habitat: "Falaises côtières du Rif", iucn: "LC" },
+  ];
+  
+  // RIF MARINE FAUNA (Faune marine de la côte méditerranéenne du Rif)
+  const rifMarineFauna = [
+    { scientific: "Caretta caretta", common: "Tortue caouanne", habitat: "Eaux côtières méditerranéennes du Rif", iucn: "VU" },
+    { scientific: "Chelonia mydas", common: "Tortue verte", habitat: "Eaux côtières du Rif", iucn: "EN" },
+    { scientific: "Delphinus delphis", common: "Dauphin commun", habitat: "Eaux méditerranéennes du Rif", iucn: "LC" },
+    { scientific: "Tursiops truncatus", common: "Grand dauphin", habitat: "Eaux côtières du Rif", iucn: "LC" },
+    { scientific: "Sparus aurata", common: "Dorade royale", habitat: "Eaux côtières rocheuses du Rif", iucn: "LC" },
+    { scientific: "Dicentrarchus labrax", common: "Bar commun", habitat: "Eaux côtières du Rif", iucn: "LC" },
+    { scientific: "Mullus surmuletus", common: "Rouget-barbet", habitat: "Fonds marins côtiers du Rif", iucn: "LC" },
+    { scientific: "Octopus vulgaris", common: "Poulpe commun", habitat: "Récifs et zones rocheuses côtières du Rif", iucn: "LC" },
+  ];
+  
+  // RIF FRESHWATER SPECIES (Espèces d'eau douce des oueds du Rif)
+  const rifFreshwater = [
+    { scientific: "Salmo trutta", common: "Truite fario", habitat: "Oueds de montagne du Rif", iucn: "LC" },
+    { scientific: "Luciobarbus maghrebensis", common: "Barbeau du Maghreb", habitat: "Oueds et rivières du Rif", iucn: "LC" },
+    { scientific: "Anguilla anguilla", common: "Anguille européenne", habitat: "Oueds côtiers du Rif", iucn: "CR" },
+    { scientific: "Alburnus alburnus", common: "Ablette", habitat: "Cours d'eau du Rif", iucn: "LC" },
+    { scientific: "Cyprinus carpio", common: "Carpe commune", habitat: "Eaux douces du Rif", iucn: "LC" },
+  ];
+  
+  const iucnStatuses: IUCNStatus[] = ["LC", "NT", "VU", "EN", "CR", "DD", "NE"];
+  const iucnWeights = [40, 15, 20, 12, 5, 5, 3];
+  
   const species = [];
+  const usedNames = new Set<string>();
   
   for (let i = 0; i < count; i++) {
     const type = weightedChoice<SpeciesType>(
       ["FLORE_TERRESTRE", "FAUNE_TERRESTRE", "FAUNE_MARINE", "ESPECE_EAU_DOUCE"],
-      [30, 25, 25, 20]
+      [30, 30, 25, 15] // More plants and terrestrial fauna in Rif
     );
     
     let scientificName: string;
     let commonName: string;
+    let habitat: string;
+    let iucnStatus: IUCNStatus;
     
     switch (type) {
       case "FLORE_TERRESTRE": {
-        const genus = randomChoice(plantGenera);
-        const speciesName = randomChoice(plantSpecies);
-        scientificName = `${genus} ${speciesName}`;
-        commonName = randomChoice(plantCommon);
+        const plant = randomChoice(rifPlants);
+        scientificName = plant.scientific;
+        commonName = plant.common;
+        habitat = plant.habitat;
+        iucnStatus = plant.iucn as IUCNStatus;
         break;
       }
       case "FAUNE_TERRESTRE": {
-        const genus = randomChoice(terrestrialFauna);
-        const speciesName = randomChoice(terrestrialFaunaSpecies);
-        scientificName = `${genus} ${speciesName}`;
-        commonName = randomChoice(terrestrialCommon);
+        const animal = randomChoice(rifTerrestrialFauna);
+        scientificName = animal.scientific;
+        commonName = animal.common;
+        habitat = animal.habitat;
+        iucnStatus = animal.iucn as IUCNStatus;
         break;
       }
       case "FAUNE_MARINE": {
-        const genus = randomChoice(marineFauna);
-        const speciesName = randomChoice(marineSpecies);
-        scientificName = `${genus} ${speciesName}`;
-        commonName = randomChoice(marineCommon);
+        const marine = randomChoice(rifMarineFauna);
+        scientificName = marine.scientific;
+        commonName = marine.common;
+        habitat = marine.habitat;
+        iucnStatus = marine.iucn as IUCNStatus;
         break;
       }
       case "ESPECE_EAU_DOUCE": {
-        const genus = randomChoice(freshwater);
-        const speciesName = randomChoice(freshwaterSpecies);
-        scientificName = `${genus} ${speciesName}`;
-        commonName = randomChoice(freshwaterCommon);
+        const freshwater = randomChoice(rifFreshwater);
+        scientificName = freshwater.scientific;
+        commonName = freshwater.common;
+        habitat = freshwater.habitat;
+        iucnStatus = freshwater.iucn as IUCNStatus;
         break;
       }
     }
     
-    const iucnStatus = weightedChoice(iucnStatuses, iucnWeights);
-    const habitat = randomChoice(habitats);
-    const description = `Espèce observée dans la région. ${type === "FLORE_TERRESTRE" ? "Plante" : "Animal"} typique de ${habitat.toLowerCase()}.`;
+    // Ensure uniqueness (small chance of duplicates with limited species lists)
+    const key = `${scientificName}-${commonName}`;
+    if (usedNames.has(key) && i < count * 0.9) {
+      // If duplicate and we're not at the end, try to regenerate type
+      i--; 
+      continue;
+    }
+    usedNames.add(key);
+    
+    const description = `Espèce observée dans la région du Rif, au nord du Maroc. ${type === "FLORE_TERRESTRE" ? "Plante" : "Animal"} caractéristique de ${habitat.toLowerCase()}. Présente dans les montagnes du Rif, entre Chefchaouen et Al Hoceima.`;
     
     species.push({
       scientificName,

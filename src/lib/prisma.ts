@@ -4,9 +4,9 @@
  * @author 1
  * @created 2026-01-01
  * @updated 2026-01-01
- * @updates 1
- * @lines 15
- * @size 0.39 KB
+ * @updates 2
+ * @lines 25
+ * @size 0.55 KB
  */
 import { PrismaClient } from "@prisma/client";
 

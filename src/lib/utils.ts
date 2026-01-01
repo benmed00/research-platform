@@ -4,9 +4,9 @@
  * @author 1
  * @created 2026-01-01
  * @updated 2026-01-01
- * @updates 1
- * @lines 23
- * @size 0.54 KB
+ * @updates 2
+ * @lines 33
+ * @size 0.70 KB
  */
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";

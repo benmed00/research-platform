@@ -4,9 +4,9 @@
  * @author 1
  * @created 2026-01-01
  * @updated 2026-01-01
- * @updates 1
- * @lines 319
- * @size 6.95 KB
+ * @updates 2
+ * @lines 320
+ * @size 6.79 KB
  */
 // ============================================
 // CORE ENTITY MODELS

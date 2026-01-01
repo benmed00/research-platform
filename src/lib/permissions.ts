@@ -4,9 +4,9 @@
  * @author 1
  * @created 2026-01-01
  * @updated 2026-01-01
- * @updates 1
- * @lines 80
- * @size 1.90 KB
+ * @updates 2
+ * @lines 87
+ * @size 2.01 KB
  */
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
