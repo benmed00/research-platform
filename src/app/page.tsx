@@ -4,9 +4,9 @@
  * @author 1
  * @created 2026-01-01
  * @updated 2026-01-01
- * @updates 1
- * @lines 15
- * @size 0.32 KB
+ * @updates 2
+ * @lines 25
+ * @size 0.47 KB
  */
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";

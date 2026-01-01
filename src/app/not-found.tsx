@@ -4,9 +4,9 @@
  * @author 1
  * @created 2026-01-01
  * @updated 2026-01-01
- * @updates 1
- * @lines 37
- * @size 1.39 KB
+ * @updates 2
+ * @lines 47
+ * @size 1.55 KB
  */
 import Link from "next/link";
 import { Button } from "@/components/ui/button";

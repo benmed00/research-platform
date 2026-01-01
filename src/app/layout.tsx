@@ -4,9 +4,9 @@
  * @author 1
  * @created 2026-01-01
  * @updated 2026-01-01
- * @updates 1
- * @lines 27
- * @size 0.63 KB
+ * @updates 2
+ * @lines 37
+ * @size 0.79 KB
  */
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";

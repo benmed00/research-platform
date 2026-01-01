@@ -4,9 +4,9 @@
  * @author 1
  * @created 2026-01-01
  * @updated 2026-01-01
- * @updates 1
- * @lines 952
- * @size 34.29 KB
+ * @updates 2
+ * @lines 970
+ * @size 35.10 KB
  */
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
@@ -32,6 +32,9 @@ import {
   generateGeologyData,
   generateSpeciesReferences,
   generateUserPermissions,
+  getRandomRifLocation,
+  RIF_LOCATIONS,
+  type RifLocation,
   randomDate,
   randomFloat,
   addDays,
@@ -394,8 +397,7 @@ async function main() {
     
     for (let i = 0; i < observationCount; i++) {
       const observationDate = randomDate(observationStartDate, new Date());
-      const latitude = randomRange(21000, 36000) / 1000; // Morocco latitude range
-      const longitude = randomRange(-17000, -1000) / 1000; // Morocco longitude range
+      const rifLocation = getRandomRifLocation();
       
       // 50% of observations are linked to completed missions
       const linkedToMission = Math.random() < 0.5 && completedMissions.length > 0;
@@ -406,11 +408,11 @@ async function main() {
       observations.push({
         speciesId: spec.id,
         date: observationDate,
-        location: `Observation point ${i + 1}`,
-        latitude,
-        longitude,
+        location: rifLocation.name,
+        latitude: rifLocation.latitude,
+        longitude: rifLocation.longitude,
         quantity: randomRange(1, 50),
-        notes: `Observation de ${spec.commonName || spec.scientificName} dans son habitat naturel.`,
+        notes: `Observation de ${spec.commonName || spec.scientificName} dans le Rif - ${rifLocation.name}.`,
         observerId: randomChoice(users).id,
         missionId,
         createdAt: observationDate,
@@ -434,18 +436,17 @@ async function main() {
     // 70% of species have location data
     const locationCount = randomRange(1, 4);
     for (let i = 0; i < locationCount; i++) {
-      const latitude = randomRange(21000, 36000) / 1000;
-      const longitude = randomRange(-17000, -1000) / 1000;
+      const rifLocation = getRandomRifLocation();
       const observedAt = randomDate(addDays(new Date(), -730), new Date());
       
       speciesLocations.push({
         speciesId: spec.id,
-        latitude,
-        longitude,
-        location: `Observation point ${i + 1}`,
+        latitude: rifLocation.latitude,
+        longitude: rifLocation.longitude,
+        location: rifLocation.name,
         observedAt,
         observerId: randomChoice(users).id,
-        notes: `Observation de ${spec.commonName || spec.scientificName}`,
+        notes: `Observation de ${spec.commonName || spec.scientificName} dans le Rif - ${rifLocation.name}`,
       });
     }
   }
@@ -465,10 +466,14 @@ async function main() {
     // 50% of species have photos
     const photoCount = randomRange(1, 3);
     for (let i = 0; i < photoCount; i++) {
+      // Use placeholder images from Unsplash with species-related keywords
+      const speciesKeywords = spec.commonName || spec.scientificName.replace(" ", "-").toLowerCase();
+      const photoUrl = `https://source.unsplash.com/400x300/?${speciesKeywords},nature,morocco`;
+      
       speciesPhotos.push({
         speciesId: spec.id,
-        url: `/photos/species/${spec.id}/photo-${i + 1}.jpg`,
-        caption: `Photo de ${spec.commonName || spec.scientificName}`,
+        url: photoUrl,
+        caption: `Photo de ${spec.commonName || spec.scientificName} - Rif, Maroc`,
         takenAt: randomDate(addDays(new Date(), -365), new Date()),
       });
     }
@@ -579,28 +584,26 @@ async function main() {
   console.log(`✅ Created ${climateData.length} climate data records`);
 
   // ============================================
-  // 15. AIR QUALITY DATA
+  // 15. AIR QUALITY DATA (RIF REGION ONLY)
   // ============================================
-  console.log("\n💨 Generating air quality data...");
+  console.log("\n💨 Generating air quality data (RIF region)...");
   const airQualityData = [];
-  const locations = ["Casablanca", "Rabat", "Marrakech", "Tanger", "Agadir"];
   
   for (let i = 0; i < 400; i++) {
     const date = randomDate(addDays(new Date(), -365), new Date());
-    const location = randomChoice(locations);
-    const latitude = randomRange(30000, 35000) / 1000;
-    const longitude = randomRange(-8000, -6000) / 1000;
+    const rifLocation = getRandomRifLocation();
     
     airQualityData.push({
-      location,
-      latitude,
-      longitude,
+      location: rifLocation.name,
+      latitude: rifLocation.latitude,
+      longitude: rifLocation.longitude,
       date,
-      pm25: randomRange(10, 80),
-      pm10: randomRange(20, 120),
-      no2: randomRange(20, 100),
-      o3: randomRange(30, 150),
-      co: randomRange(1, 10),
+      // RIF region has generally good air quality (mountain region)
+      pm25: randomRange(5, 30),
+      pm10: randomRange(10, 50),
+      no2: randomRange(10, 40),
+      o3: randomRange(20, 80),
+      co: randomRange(0.5, 3),
     });
   }
   
@@ -613,28 +616,33 @@ async function main() {
   console.log(`✅ Created ${airQualityData.length} air quality records`);
 
   // ============================================
-  // 16. WATER QUALITY DATA
+  // 16. WATER QUALITY DATA (RIF REGION ONLY)
   // ============================================
-  console.log("\n💧 Generating water quality data...");
+  console.log("\n💧 Generating water quality data (RIF region)...");
   const waterTypes = ["MER", "SOURCE", "BARRAGE"];
-  const waterLocations = [
-    "Océan Atlantique - Casablanca",
-    "Mer Méditerranée - Al Hoceima",
-    "Oued Tensift",
-    "Lac de Tislit",
-    "Réserve de Merja Zerga",
-    "Barrage Al Wahda",
-    "Source Ain Asserdoun",
-    "Source Ain Ifni",
-  ];
+  
+  // Filter RIF locations for water sources
+  const rifWaterLocations: RifLocation[] = RIF_LOCATIONS.filter(loc => 
+    loc.type === "coast" || loc.type === "river"
+  );
   
   const waterQualityData = [];
   for (let i = 0; i < 300; i++) {
     const date = randomDate(addDays(new Date(), -365), new Date());
-    const location = randomChoice(waterLocations);
-    const waterType = randomChoice(waterTypes) as "MER" | "SOURCE" | "BARRAGE";
-    const latitude = randomRange(28000, 36000) / 1000;
-    const longitude = randomRange(-12000, -5000) / 1000;
+    // Use RIF coastal/river locations, or fall back to a random water location
+    const rifLocation: RifLocation = rifWaterLocations.length > 0 
+      ? randomChoice(rifWaterLocations)
+      : randomChoice(RIF_LOCATIONS.filter(loc => loc.type === "coast" || loc.type === "river"));
+    
+    // Determine water type based on location type
+    let waterType: "MER" | "SOURCE" | "BARRAGE";
+    if (rifLocation.type === "coast") {
+      waterType = "MER";
+    } else if (rifLocation.type === "river") {
+      waterType = weightedChoice(["SOURCE", "BARRAGE"], [70, 30]);
+    } else {
+      waterType = randomChoice(waterTypes) as "MER" | "SOURCE" | "BARRAGE";
+    }
     
     // Realistic water quality ranges
     const ph = randomFloat(6.5, 8.5);
@@ -645,9 +653,9 @@ async function main() {
     
     waterQualityData.push({
       type: waterType,
-      location,
-      latitude,
-      longitude,
+      location: rifLocation.name,
+      latitude: rifLocation.latitude,
+      longitude: rifLocation.longitude,
       date,
       ph: Math.round(ph * 10) / 10,
       temperature: Math.round(temperature * 10) / 10,

@@ -4,9 +4,9 @@
  * @author 1
  * @created 2026-01-01
  * @updated 2026-01-01
- * @updates 1
- * @lines 196
- * @size 7.36 KB
+ * @updates 2
+ * @lines 219
+ * @size 8.11 KB
  */
 "use client";
 
@@ -63,11 +63,18 @@ export default function MapsPage() {
                 speciesDetail.locations.forEach((loc: any) => {
                   speciesWithLocations.push({
                     id: `${s.id}-${loc.id}`,
+                    speciesId: s.id,
                     scientificName: s.scientificName,
                     commonName: s.commonName,
+                    type: s.type,
+                    iucnStatus: s.iucnStatus,
+                    habitat: s.habitat,
                     latitude: loc.latitude,
                     longitude: loc.longitude,
+                    location: loc.location,
                     observedAt: loc.observedAt,
+                    notes: loc.notes,
+                    photos: speciesDetail.photos || [],
                   });
                 });
               }
@@ -83,11 +90,14 @@ export default function MapsPage() {
             .map((m: any) => ({
               id: m.id,
               title: m.title,
+              description: m.description,
+              location: m.location,
               latitude: m.latitude,
               longitude: m.longitude,
               startDate: m.startDate,
               endDate: m.endDate,
               status: m.status,
+              objectives: m.objectives,
             })),
           species: speciesWithLocations,
           waterQuality: water
@@ -99,6 +109,9 @@ export default function MapsPage() {
               longitude: w.longitude,
               type: w.type,
               date: w.date,
+              ph: w.ph,
+              temperature: w.temperature,
+              salinity: w.salinity,
             })),
           climateStations: climate
             .filter((c: any) => c.latitude && c.longitude)
@@ -148,10 +161,10 @@ export default function MapsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
-            SIG & Cartographie
+            SIG & Cartographie - Région du Rif
           </h1>
           <p className="text-base text-gray-600 dark:text-gray-400 mt-1.5">
-            Visualisation géographique des données
+            Visualisation géographique des données de recherche dans les montagnes du Rif (Nord du Maroc)
           </p>
         </div>
         <div className="flex gap-2">
@@ -195,7 +208,7 @@ export default function MapsPage() {
 
         <Card variant="elevated" className="lg:col-span-3 p-6">
           <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 shadow-sm" style={{ height: "600px" }}>
-            <LeafletMap data={filteredData} center={[35.0, -5.0]} zoom={8} />
+            <LeafletMap data={filteredData} center={[35.1714, -5.2694]} zoom={9} />
           </div>
         </Card>
       </div>

@@ -4,9 +4,9 @@
  * @author 1
  * @created 2026-01-01
  * @updated 2026-01-01
- * @updates 1
- * @lines 60
- * @size 1.42 KB
+ * @updates 2
+ * @lines 70
+ * @size 1.60 KB
  */
 import { prisma } from "@/lib/prisma";
 import { CalendarView } from "@/components/calendar/calendar-view";

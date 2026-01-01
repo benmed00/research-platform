@@ -4,9 +4,9 @@
  * @author 1
  * @created 2026-01-01
  * @updated 2026-01-01
- * @updates 1
- * @lines 29
- * @size 0.43 KB
+ * @updates 2
+ * @lines 39
+ * @size 0.60 KB
  */
 import "next-auth";
 import { UserRole } from "@prisma/client";
