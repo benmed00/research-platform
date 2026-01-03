@@ -34,7 +34,7 @@
     "@hookform/resolvers": "^3.9.0",
     "@prisma/client": "^5.19.0",
     "@types/leaflet.markercluster": "^1.5.6",
-    "bcryptjs": "^2.4.3",
+    "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "jspdf": "^2.5.1",
@@ -54,7 +54,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
+    "@types/bcryptjs": "^3.0.0",
     "@types/leaflet": "^1.9.8",
     "@types/node": "^20.14.0",
     "@types/papaparse": "^5.3.14",
