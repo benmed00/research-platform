@@ -366,7 +366,7 @@ export function generateSpecies(count: number): Array<{
   const iucnWeights = [40, 15, 20, 12, 5, 5, 3];
   
   const species = [];
-  const usedNames = new Set<string>();
+  const usedNames = new Map<string, number>(); // Track how many times each species was used
   
   for (let i = 0; i < count; i++) {
     const type = weightedChoice<SpeciesType>(
@@ -414,20 +414,20 @@ export function generateSpecies(count: number): Array<{
       }
     }
     
-    // Ensure uniqueness (small chance of duplicates with limited species lists)
+    // Allow duplicates but add a suffix to make them unique
     const key = `${scientificName}-${commonName}`;
-    if (usedNames.has(key) && i < count * 0.9) {
-      // If duplicate and we're not at the end, try to regenerate type
-      i--; 
-      continue;
-    }
-    usedNames.add(key);
+    const countUsed = usedNames.get(key) || 0;
+    usedNames.set(key, countUsed + 1);
     
-    const description = `Espèce observée dans la région du Rif, au nord du Maroc. ${type === "FLORE_TERRESTRE" ? "Plante" : "Animal"} caractéristique de ${habitat.toLowerCase()}. Présente dans les montagnes du Rif, entre Chefchaouen et Al Hoceima.`;
+    // Add suffix for duplicates (represents different observations/populations)
+    const finalScientificName = countUsed > 0 ? `${scientificName} (obs. ${countUsed + 1})` : scientificName;
+    const finalCommonName = countUsed > 0 ? `${commonName} (${countUsed + 1})` : commonName;
+    
+    const description = `Espèce observée dans la région du Rif, au nord du Maroc. ${type === "FLORE_TERRESTRE" ? "Plante" : "Animal"} caractéristique de ${habitat.toLowerCase()}. Présente dans les montagnes du Rif, entre Chefchaouen et Al Hoceima.${countUsed > 0 ? ` Observation supplémentaire de cette espèce dans une zone différente du Rif.` : ''}`;
     
     species.push({
-      scientificName,
-      commonName,
+      scientificName: finalScientificName,
+      commonName: finalCommonName,
       type,
       iucnStatus,
       habitat,

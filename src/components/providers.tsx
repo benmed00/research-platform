@@ -13,12 +13,15 @@
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "./theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
+import { NotificationProvider } from "@/components/notifications/notification-provider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider refetchInterval={5 * 60} refetchOnWindowFocus={false}>
       <ThemeProvider>
-        <ToastProvider>{children}</ToastProvider>
+        <ToastProvider>
+          <NotificationProvider>{children}</NotificationProvider>
+        </ToastProvider>
       </ThemeProvider>
     </SessionProvider>
   );

@@ -10,10 +10,12 @@
  */
 "use client";
 
-import { memo } from "react";
+import { memo, MemoExoticComponent } from "react";
 import { useSession } from "next-auth/react";
-import { Bell, Search, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
+import { GlobalSearch } from "@/components/search/global-search";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 
 const roleLabels: Record<string, string> = {
   DIRECTEUR_SCIENTIFIQUE: "Directeur Scientifique",
@@ -41,13 +43,8 @@ function HeaderComponent() {
     <header className="bg-card border-b border-border px-4 lg:px-6 py-3 shadow-sm">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 lg:gap-4 flex-1 min-w-0">
-          <div className="relative flex-1 max-w-md hidden md:block">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Rechercher..."
-              className="w-full pl-10 pr-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground placeholder:text-muted-foreground transition-colors duration-200 text-sm"
-            />
+          <div className="hidden md:block flex-1">
+            <GlobalSearch />
           </div>
         </div>
         <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
@@ -62,13 +59,7 @@ function HeaderComponent() {
               <Moon className="w-6 h-6" />
             )}
           </button>
-          <button 
-            className="p-2 text-muted-foreground hover:text-foreground relative transition-colors duration-200 ease-in-out rounded-md focus-ring"
-            aria-label="Notifications"
-          >
-            <Bell className="w-6 h-6" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-background"></span>
-          </button>
+          <NotificationBell />
           <div className="flex items-center gap-2 lg:gap-3">
             <div className="text-right hidden sm:block">
               <p className="text-sm font-medium text-foreground">
@@ -88,5 +79,5 @@ function HeaderComponent() {
   );
 }
 
-export const Header = memo(HeaderComponent);
+export const Header: MemoExoticComponent<typeof HeaderComponent> = memo(HeaderComponent);
 
