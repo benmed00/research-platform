@@ -114,12 +114,20 @@ export async function GET(request: NextRequest) {
       prisma.salary.count({ where }),
     ]);
 
-    return NextResponse.json({
-      data: salaries,
-      total,
-      limit,
-      offset,
-    });
+    // Cache for 5 minutes
+    return NextResponse.json(
+      {
+        data: salaries,
+        total,
+        limit,
+        offset,
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        },
+      }
+    );
   } catch (error) {
     console.error("Error fetching salaries:", error);
     return NextResponse.json(

@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { notifyNewMission } from "@/lib/notifications";
 
 export async function POST(request: NextRequest) {
   try {
@@ -78,6 +79,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Create notification for admins
+    await notifyNewMission(mission.id, session.user.id).catch(console.error);
+
     return NextResponse.json(mission, { status: 201 });
   } catch (error: any) {
     console.error("Error creating mission:", error);
@@ -113,11 +117,21 @@ export async function GET(request: NextRequest) {
             },
           },
         },
+        _count: {
+          select: {
+            equipment: true,
+          },
+        },
       },
       orderBy: { startDate: "desc" },
     });
 
-    return NextResponse.json(missions);
+    // Cache for 5 minutes
+    return NextResponse.json(missions, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      },
+    });
   } catch (error) {
     console.error("Error fetching missions:", error);
     return NextResponse.json(

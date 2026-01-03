@@ -98,11 +98,16 @@ export async function GET(request: NextRequest) {
       prisma.waterQuality.count({ where }),
     ]);
 
+    // Cache for 5 minutes
     return NextResponse.json({
       data: waterQuality,
       total,
       limit,
       offset,
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      },
     });
   } catch (error) {
     console.error("Error fetching water quality data:", error);

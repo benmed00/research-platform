@@ -84,7 +84,12 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(employees);
+    // Cache for 5 minutes
+    return NextResponse.json(employees, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      },
+    });
   } catch (error) {
     console.error("Error fetching employees:", error);
     return NextResponse.json(

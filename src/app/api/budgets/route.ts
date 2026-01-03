@@ -83,7 +83,12 @@ export async function GET(request: NextRequest) {
       orderBy: { year: "desc" },
     });
 
-    return NextResponse.json(budgets);
+    // Cache for 5 minutes
+    return NextResponse.json(budgets, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      },
+    });
   } catch (error) {
     console.error("Error fetching budgets:", error);
     return NextResponse.json(

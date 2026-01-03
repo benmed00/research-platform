@@ -13,6 +13,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { missionSchema } from "@/lib/validations";
+import { notifyMissionCompleted } from "@/lib/notifications";
 
 export async function GET(
   request: NextRequest,
@@ -209,6 +210,11 @@ export async function PUT(
           })),
         });
       }
+    }
+
+    // Notify if mission was just completed
+    if (data.status === "completed" && existingMission.status !== "completed") {
+      await notifyMissionCompleted(mission.id, mission.title).catch(console.error);
     }
 
     await prisma.auditLog.create({

@@ -100,11 +100,16 @@ export async function GET(request: NextRequest) {
       prisma.climateData.count({ where }),
     ]);
 
+    // Cache for 5 minutes
     return NextResponse.json({
       data: climateData,
       total,
       limit,
       offset,
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      },
     });
   } catch (error) {
     console.error("Error fetching climate data:", error);

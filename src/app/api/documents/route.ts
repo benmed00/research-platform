@@ -30,7 +30,8 @@ export async function POST(request: NextRequest) {
     const title = formData.get("title") as string;
     const type = formData.get("type") as "RAPPORT_SCIENTIFIQUE" | "RAPPORT_ADMINISTRATIF" | "DONNEE_BRUTE" | "PUBLICATION" | "AUTRE";
     const description = formData.get("description") as string | null;
-    const missionId = formData.get("missionId") as string | null;
+    const missionIdRaw = formData.get("missionId") as string | null;
+    const missionId = missionIdRaw && missionIdRaw.trim() !== "" ? missionIdRaw : null;
     const isPublic = formData.get("isPublic") === "true";
 
     if (!file) {
@@ -52,6 +53,20 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     await writeFile(filepath, buffer);
+
+    // Validate missionId if provided
+    if (missionId) {
+      const missionExists = await prisma.mission.findUnique({
+        where: { id: missionId },
+        select: { id: true },
+      });
+      if (!missionExists) {
+        return NextResponse.json(
+          { error: "Mission non trouvée" },
+          { status: 400 }
+        );
+      }
+    }
 
     // Create document record
     const fileUrl = `/uploads/documents/${filename}`;
@@ -136,12 +151,20 @@ export async function GET(request: NextRequest) {
       prisma.document.count({ where }),
     ]);
 
-    return NextResponse.json({
-      data: documents,
-      total,
-      limit,
-      offset,
-    });
+    // Cache for 5 minutes
+    return NextResponse.json(
+      {
+        data: documents,
+        total,
+        limit,
+        offset,
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        },
+      }
+    );
   } catch (error) {
     console.error("Error fetching documents:", error);
     return NextResponse.json(

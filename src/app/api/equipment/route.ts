@@ -73,10 +73,21 @@ export async function GET(request: NextRequest) {
     }
 
     const equipment = await prisma.equipment.findMany({
+      include: {
+        maintenances: {
+          take: 1,
+          orderBy: { date: "desc" },
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(equipment);
+    // Cache for 5 minutes
+    return NextResponse.json(equipment, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      },
+    });
   } catch (error) {
     console.error("Error fetching equipment:", error);
     return NextResponse.json(

@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { notifyNewSpecies } from "@/lib/notifications";
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,6 +52,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Create notification for scientists
+    await notifyNewSpecies(species.id, species.scientificName).catch(console.error);
+
     return NextResponse.json(species, { status: 201 });
   } catch (error: any) {
     console.error("Error creating species:", error);
@@ -87,7 +91,12 @@ export async function GET(request: NextRequest) {
       orderBy: { scientificName: "asc" },
     });
 
-    return NextResponse.json(species);
+    // Cache for 5 minutes
+    return NextResponse.json(species, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      },
+    });
   } catch (error) {
     console.error("Error fetching species:", error);
     return NextResponse.json(
