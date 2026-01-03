@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Plus, Users, Calendar, DollarSign } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { ExportButtons } from "@/components/export/export-buttons";
 
 // Force dynamic rendering to avoid build-time database queries
 export const dynamic = 'force-dynamic';
@@ -88,12 +89,15 @@ export default async function RHPage() {
             Gestion des employés, salaires et congés
           </p>
         </div>
-        <Link href="/dashboard/rh/employees/new">
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            Nouvel employé
-          </Button>
-        </Link>
+        <div className="flex items-center gap-3">
+          <ExportButtons type="employees" />
+          <Link href="/dashboard/rh/employees/new">
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Nouvel employé
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

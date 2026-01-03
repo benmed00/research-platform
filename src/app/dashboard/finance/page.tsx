@@ -15,6 +15,7 @@ import Link from "next/link";
 import { Plus, DollarSign, TrendingUp, FileText } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { FinanceCharts } from "@/components/finance-charts";
+import { ExportButtons } from "@/components/export/export-buttons";
 
 // Force dynamic rendering to avoid build-time database queries
 export const dynamic = 'force-dynamic';
@@ -170,19 +171,22 @@ export default async function FinancePage() {
             Gestion des budgets, dépenses et factures
           </p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/dashboard/finance/budgets/new">
-            <Button variant="outline">
-              <Plus className="w-4 h-4 mr-2" />
-              Budget
-            </Button>
-          </Link>
-          <Link href="/dashboard/finance/expenses/new">
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Dépense
-            </Button>
-          </Link>
+        <div className="flex items-center gap-3">
+          <ExportButtons type="expenses" />
+          <div className="flex gap-2">
+            <Link href="/dashboard/finance/budgets/new">
+              <Button variant="outline">
+                <Plus className="w-4 h-4 mr-2" />
+                Budget
+              </Button>
+            </Link>
+            <Link href="/dashboard/finance/expenses/new">
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Dépense
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
