@@ -1,0 +1,6 @@
+# Documentation organization rule
+# All .md files except README.md should be in docs/ folder
+
+# Markdown files
+*.md linguist-documentation
+
