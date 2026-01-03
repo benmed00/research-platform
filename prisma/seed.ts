@@ -339,18 +339,27 @@ async function main() {
   // ============================================
   // 10. SPECIES (150 species)
   // ============================================
-  console.log("\n🦎 Generating species...");
-  const speciesData = generateSpecies(150);
-  const species = await Promise.all(
-    speciesData.map((spec) =>
-      prisma.species.create({
-        data: {
-          ...spec,
-          createdAt: randomDate(startDate, new Date()),
-        },
-      })
-    )
-  );
+  console.log("\n🦎 Generating species data...");
+  const speciesData = generateSpecies(150).map((spec) => ({
+    ...spec,
+    createdAt: randomDate(startDate, new Date()),
+  }));
+  console.log(`  Generated ${speciesData.length} species records`);
+  
+  console.log("  Inserting species into database...");
+  // Use createMany for better performance
+  const createResult = await prisma.species.createMany({
+    data: speciesData,
+    skipDuplicates: true,
+  });
+  console.log(`  Inserted ${createResult.count} species`);
+  
+  // Fetch all created species
+  console.log("  Fetching created species...");
+  const species = await prisma.species.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 150,
+  });
   console.log(`✅ Created ${species.length} species`);
 
   // ============================================
@@ -915,6 +924,49 @@ async function main() {
   console.log(`✅ Created ${salaries.length} salary records`);
 
   // ============================================
+  // 30. NOTIFICATIONS (test notifications for all users)
+  // ============================================
+  console.log("\n🔔 Generating test notifications...");
+  const notifications = [];
+  
+  for (const user of users) {
+    // Create 3 test notifications per user
+    notifications.push(
+      {
+        userId: user.id,
+        type: "info",
+        title: "Bienvenue sur la plateforme",
+        message: `Bonjour ${user.firstName}, bienvenue sur la plateforme de recherche. Le système de notifications est maintenant actif !`,
+        link: "/dashboard",
+        read: false,
+      },
+      {
+        userId: user.id,
+        type: "success",
+        title: "Système de notifications activé",
+        message: "Les notifications automatiques seront créées lors d'événements importants (nouvelles missions, espèces, etc.)",
+        read: false,
+      },
+      {
+        userId: user.id,
+        type: "warning",
+        title: "Action requise",
+        message: "N'oubliez pas de configurer vos préférences de notifications",
+        link: "/dashboard/notifications",
+        read: false,
+      }
+    );
+  }
+  
+  for (let i = 0; i < notifications.length; i += 200) {
+    const batch = notifications.slice(i, i + 200);
+    await prisma.notification.createMany({
+      data: batch,
+    });
+  }
+  console.log(`✅ Created ${notifications.length} notification records`);
+
+  // ============================================
   // SUMMARY
   // ============================================
   console.log("\n" + "=".repeat(50));
@@ -952,6 +1004,7 @@ async function main() {
   console.log(`   ⛰️ Geology Data: ${geologyData.length}`);
   console.log(`   📚 Species References: ${speciesRefData.length}`);
   console.log(`   🔐 User Permissions: ${userPermData.length}`);
+  console.log(`   🔔 Notifications: ${notifications.length}`);
   console.log("\n✨ Your dashboard is now ready with realistic sample data!");
   console.log("\n🔑 Default credentials:");
   console.log("   Email: admin@research-platform.ma");
