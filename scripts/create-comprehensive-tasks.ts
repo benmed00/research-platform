@@ -3,7 +3,7 @@
  * Analyzes current implementation and creates tasks for all milestones
  */
 
-import { execSync } from 'child_process';
+import { execSync, execFileSync } from 'child_process';
 
 interface Task {
   title: string;
@@ -670,15 +670,20 @@ function createIssue(task: Task): void {
     console.log(`Creating: ${task.title}`);
     
     const labels = task.labels.join(',');
-    const body = task.body.replace(/"/g, '\\"');
+    const args = [
+      'issue',
+      'create',
+      '--title',
+      task.title,
+      '--body',
+      task.body,
+      '--milestone',
+      task.milestone,
+      '--label',
+      labels
+    ];
     
-    const command = `gh issue create ` +
-      `--title "${task.title}" ` +
-      `--body "${body}" ` +
-      `--milestone "${task.milestone}" ` +
-      `--label "${labels}"`;
-    
-    execSync(command, { stdio: 'inherit', encoding: 'utf-8' });
+    execFileSync('gh', args, { stdio: 'inherit', encoding: 'utf-8' });
     console.log(`✅ Created: ${task.title}\n`);
   } catch (error) {
     console.error(`❌ Failed: ${task.title}`);
