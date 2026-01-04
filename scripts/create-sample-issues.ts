@@ -10,7 +10,7 @@
  * Note: Requires GitHub CLI (gh) to be installed and authenticated
  */
 
-import { execSync } from 'child_process';
+import { execSync, execFileSync } from 'child_process';
 
 interface Issue {
   title: string;
@@ -148,17 +148,22 @@ function createIssue(issue: Issue): void {
   try {
     console.log(`Creating issue: ${issue.title}`);
     
-    // Build the gh issue create command
+    // Build the gh issue create command arguments
     const labels = issue.labels.join(',');
-    const body = issue.body.replace(/"/g, '\\"');
+    const args = [
+      'issue',
+      'create',
+      '--title',
+      issue.title,
+      '--body',
+      issue.body,
+      '--milestone',
+      issue.milestone,
+      '--label',
+      labels
+    ];
     
-    const command = `gh issue create ` +
-      `--title "${issue.title}" ` +
-      `--body "${body}" ` +
-      `--milestone "${issue.milestone}" ` +
-      `--label "${labels}"`;
-    
-    execSync(command, { stdio: 'inherit', encoding: 'utf-8' });
+    execFileSync('gh', args, { stdio: 'inherit', encoding: 'utf-8' });
     console.log(`✅ Created: ${issue.title}\n`);
   } catch (error) {
     console.error(`❌ Failed to create issue: ${issue.title}`);
