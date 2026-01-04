@@ -1,51 +1,53 @@
 # Auto-label PRs based on file changes
+# Format for actions/labeler@v5
 
-'enhancement':
-  - 'src/**/*.ts'
-  - 'src/**/*.tsx'
+enhancement:
+  - src/**/*.ts
+  - src/**/*.tsx
   - '!src/**/*.test.ts'
   - '!src/**/*.spec.ts'
 
-'bug':
-  - 'src/**/*.ts'
-  - 'src/**/*.tsx'
+bug:
+  - src/**/*.ts
+  - src/**/*.tsx
   - '!src/**/*.test.ts'
   - '!src/**/*.spec.ts'
 
-'documentation':
+documentation:
   - '*.md'
-  - 'docs/**'
-  - 'README*.md'
-  - 'CONTRIBUTING.md'
-  - '.github/**/*.md'
+  - docs/**
+  - README*.md
+  - CONTRIBUTING.md
+  - .github/**/*.md
+  - wiki/**
 
-'dependencies':
-  - 'package.json'
-  - 'package-lock.json'
-  - 'yarn.lock'
-  - 'pnpm-lock.yaml'
+dependencies:
+  - package.json
+  - package-lock.json
+  - yarn.lock
+  - pnpm-lock.yaml
 
 'github-actions':
-  - '.github/workflows/**'
-  - '.github/actions/**'
+  - .github/workflows/**
+  - .github/actions/**
 
-'testing':
+testing:
   - '**/*.test.ts'
   - '**/*.test.tsx'
   - '**/*.spec.ts'
   - '**/*.spec.tsx'
-  - 'jest.config.*'
-  - 'vitest.config.*'
+  - jest.config.*
+  - vitest.config.*
 
-'prisma':
-  - 'prisma/**'
+prisma:
+  - prisma/**
 
-'api':
-  - 'src/app/api/**'
+api:
+  - src/app/api/**
 
-'components':
-  - 'src/components/**'
+components:
+  - src/components/**
 
-'lib':
-  - 'src/lib/**'
+lib:
+  - src/lib/**
 
