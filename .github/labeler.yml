@@ -2,52 +2,34 @@
 # Format for actions/labeler@v5
 
 enhancement:
-  - src/**/*.ts
-  - src/**/*.tsx
-  - '!src/**/*.test.ts'
-  - '!src/**/*.spec.ts'
+  - any: ['src/**/*.ts', 'src/**/*.tsx']
+    all: ['!src/**/*.test.ts', '!src/**/*.spec.ts']
 
 bug:
-  - src/**/*.ts
-  - src/**/*.tsx
-  - '!src/**/*.test.ts'
-  - '!src/**/*.spec.ts'
+  - any: ['src/**/*.ts', 'src/**/*.tsx']
+    all: ['!src/**/*.test.ts', '!src/**/*.spec.ts']
 
 documentation:
-  - '*.md'
-  - docs/**
-  - README*.md
-  - CONTRIBUTING.md
-  - .github/**/*.md
-  - wiki/**
+  - any: ['*.md', 'docs/**', 'README*.md', 'CONTRIBUTING.md', '.github/**/*.md', 'wiki/**']
 
 dependencies:
-  - package.json
-  - package-lock.json
-  - yarn.lock
-  - pnpm-lock.yaml
+  - any: ['package.json', 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml']
 
 'github-actions':
-  - .github/workflows/**
-  - .github/actions/**
+  - any: ['.github/workflows/**', '.github/actions/**']
 
 testing:
-  - '**/*.test.ts'
-  - '**/*.test.tsx'
-  - '**/*.spec.ts'
-  - '**/*.spec.tsx'
-  - jest.config.*
-  - vitest.config.*
+  - any: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx', 'jest.config.*', 'vitest.config.*']
 
 prisma:
-  - prisma/**
+  - any: ['prisma/**']
 
 api:
-  - src/app/api/**
+  - any: ['src/app/api/**']
 
 components:
-  - src/components/**
+  - any: ['src/components/**']
 
 lib:
-  - src/lib/**
+  - any: ['src/lib/**']
 
