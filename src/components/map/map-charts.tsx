@@ -1,6 +1,12 @@
 /**
  * @file map-charts.tsx
- * @description Advanced charts component for map data visualization
+ * @description src/components/map/map-charts.tsx
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 295
+ * @size 8.65 KB
  */
 "use client";
 

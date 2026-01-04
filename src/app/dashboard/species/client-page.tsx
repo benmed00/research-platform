@@ -1,3 +1,13 @@
+/**
+ * @file client-page.tsx
+ * @description src/app/dashboard/species/client-page.tsx
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 432
+ * @size 16.60 KB
+ */
 "use client";
 
 import { useState, useEffect, useMemo } from "react";

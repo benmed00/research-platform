@@ -1,8 +1,13 @@
 /**
- * Script to add labels, milestone, and project to PR #60
- * Run with: ts-node --project tsconfig.seed.json scripts/add-pr-details.ts
+ * @file add-pr-details.ts
+ * @description scripts/add-pr-details.ts
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 71
+ * @size 1.97 KB
  */
-
 import { execFileSync } from 'child_process';
 
 const PR_NUMBER = 60;

@@ -3,10 +3,10 @@
  * @description src/app/api/missions/route.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
- * @lines 130
- * @size 3.17 KB
+ * @updated 2026-01-04
+ * @updates 3
+ * @lines 144
+ * @size 3.45 KB
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";

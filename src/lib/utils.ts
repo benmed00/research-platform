@@ -3,10 +3,10 @@
  * @description src/lib/utils.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 33
- * @size 0.70 KB
+ * @size 0.68 KB
  */
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";

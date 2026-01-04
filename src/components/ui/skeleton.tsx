@@ -3,10 +3,10 @@
  * @description src/components/ui/skeleton.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 86
- * @size 2.46 KB
+ * @size 2.39 KB
  */
 import { cn } from "@/lib/utils";
 

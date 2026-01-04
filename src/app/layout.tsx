@@ -3,10 +3,10 @@
  * @description src/app/layout.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 37
- * @size 0.79 KB
+ * @size 0.76 KB
  */
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";

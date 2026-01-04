@@ -3,10 +3,10 @@
  * @description scripts/add-file-headers.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 186
- * @size 5.37 KB
+ * @size 5.19 KB
  */
 import * as fs from 'fs';
 import * as path from 'path';

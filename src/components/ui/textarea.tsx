@@ -3,10 +3,10 @@
  * @description src/components/ui/textarea.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 35
- * @size 1.15 KB
+ * @size 1.13 KB
  */
 import * as React from "react";
 import { cn } from "@/lib/utils";

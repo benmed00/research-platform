@@ -1,15 +1,13 @@
 /**
- * Script to create sample issues for the Research Platform project
- * 
- * This script creates initial issues organized by milestone to populate
- * the project board with meaningful tasks.
- * 
- * Usage:
- *   ts-node --project tsconfig.seed.json scripts/create-sample-issues.ts
- * 
- * Note: Requires GitHub CLI (gh) to be installed and authenticated
+ * @file create-sample-issues.ts
+ * @description scripts/create-sample-issues.ts
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 220
+ * @size 6.01 KB
  */
-
 import { execSync, execFileSync } from 'child_process';
 
 interface Issue {

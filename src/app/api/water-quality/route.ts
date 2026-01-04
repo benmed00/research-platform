@@ -3,10 +3,10 @@
  * @description src/app/api/water-quality/route.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
- * @lines 116
- * @size 3.09 KB
+ * @updated 2026-01-04
+ * @updates 3
+ * @lines 121
+ * @size 3.12 KB
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";

@@ -1,8 +1,13 @@
 /**
- * Script to create comprehensive tasks based on project status
- * Analyzes current implementation and creates tasks for all milestones
+ * @file create-comprehensive-tasks.ts
+ * @description scripts/create-comprehensive-tasks.ts
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 736
+ * @size 18.32 KB
  */
-
 import { execSync, execFileSync } from 'child_process';
 
 interface Task {

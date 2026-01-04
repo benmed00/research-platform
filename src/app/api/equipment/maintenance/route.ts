@@ -1,5 +1,12 @@
 /**
- * API route for equipment maintenance
+ * @file route.ts
+ * @description src/app/api/equipment/maintenance/route.ts
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 47
+ * @size 1.22 KB
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";

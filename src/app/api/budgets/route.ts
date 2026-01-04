@@ -3,10 +3,10 @@
  * @description src/app/api/budgets/route.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
- * @lines 96
- * @size 2.56 KB
+ * @updated 2026-01-04
+ * @updates 3
+ * @lines 101
+ * @size 2.61 KB
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";

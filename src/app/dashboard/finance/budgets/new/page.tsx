@@ -3,10 +3,10 @@
  * @description src/app/dashboard/finance/budgets/new/page.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 1
- * @lines 278
- * @size 8.5 KB
+ * @updated 2026-01-04
+ * @updates 2
+ * @lines 343
+ * @size 11.48 KB
  */
 "use client";
 

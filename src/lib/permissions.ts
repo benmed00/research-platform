@@ -3,10 +3,10 @@
  * @description src/lib/permissions.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 87
- * @size 2.01 KB
+ * @size 1.93 KB
  */
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
