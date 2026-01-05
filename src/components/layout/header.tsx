@@ -3,10 +3,10 @@
  * @description src/components/layout/header.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
- * @lines 93
- * @size 3.74 KB
+ * @updated 2026-01-04
+ * @updates 3
+ * @lines 84
+ * @size 3.03 KB
  */
 "use client";
 

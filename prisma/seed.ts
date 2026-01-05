@@ -3,10 +3,10 @@
  * @description prisma/seed.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
- * @lines 970
- * @size 35.10 KB
+ * @updated 2026-01-04
+ * @updates 3
+ * @lines 1023
+ * @size 36.01 KB
  */
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";

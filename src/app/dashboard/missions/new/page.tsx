@@ -3,10 +3,10 @@
  * @description src/app/dashboard/missions/new/page.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 288
- * @size 9.15 KB
+ * @size 8.88 KB
  */
 "use client";
 

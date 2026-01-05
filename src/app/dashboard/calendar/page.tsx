@@ -3,10 +3,10 @@
  * @description src/app/dashboard/calendar/page.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
- * @lines 70
- * @size 1.60 KB
+ * @updated 2026-01-04
+ * @updates 3
+ * @lines 74
+ * @size 1.67 KB
  */
 import { prisma } from "@/lib/prisma";
 import { CalendarView } from "@/components/calendar/calendar-view";

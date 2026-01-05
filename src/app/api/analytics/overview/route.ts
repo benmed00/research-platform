@@ -3,10 +3,10 @@
  * @description src/app/api/analytics/overview/route.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 88
- * @size 2.32 KB
+ * @size 2.25 KB
  */
 import { NextResponse } from "next/server";
 import {

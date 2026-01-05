@@ -2,7 +2,7 @@ name: PR Labels
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
   contents: read
@@ -13,10 +13,21 @@ jobs:
     name: Auto-label PR
     runs-on: ubuntu-latest
     timeout-minutes: 2
+    continue-on-error: true
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Validate labeler configuration
+        run: |
+          if [ ! -f .github/labeler.yml ]; then
+            echo "❌ .github/labeler.yml not found"
+            exit 1
+          fi
+          echo "✅ Labeler configuration file exists"
       
       - name: Auto-label PR
         uses: actions/labeler@v5
@@ -24,4 +35,5 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           configuration-path: .github/labeler.yml
           sync-labels: true
+          dot: true
 

@@ -1,3 +1,13 @@
+/**
+ * @file equipment-filters.tsx
+ * @description src/components/filters/equipment-filters.tsx
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 169
+ * @size 5.31 KB
+ */
 "use client";
 
 import { useState } from "react";

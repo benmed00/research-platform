@@ -3,10 +3,10 @@
  * @description src/lib/auth.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 90
- * @size 2.02 KB
+ * @size 1.95 KB
  */
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";

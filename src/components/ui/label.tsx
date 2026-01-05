@@ -3,10 +3,10 @@
  * @description src/components/ui/label.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 42
- * @size 0.90 KB
+ * @size 0.87 KB
  */
 import * as React from "react";
 import { cn } from "@/lib/utils";

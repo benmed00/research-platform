@@ -3,10 +3,10 @@
  * @description src/components/search-bar.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 67
- * @size 1.82 KB
+ * @size 1.77 KB
  */
 "use client";
 

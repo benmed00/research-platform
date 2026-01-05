@@ -3,10 +3,10 @@
  * @description src/app/loading.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 22
- * @size 0.53 KB
+ * @size 0.52 KB
  */
 export default function Loading() {
   return (

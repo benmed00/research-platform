@@ -3,9 +3,9 @@
  * @description src/app/dashboard/environment/climate/page.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
- * @lines 140
+ * @updated 2026-01-04
+ * @updates 3
+ * @lines 144
  * @size 6.19 KB
  */
 import { prisma } from "@/lib/prisma";

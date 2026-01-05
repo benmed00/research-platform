@@ -3,10 +3,10 @@
  * @description src/app/dashboard/publications/new/page.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 197
- * @size 6.27 KB
+ * @size 6.09 KB
  */
 "use client";
 

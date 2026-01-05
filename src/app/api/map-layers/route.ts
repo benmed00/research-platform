@@ -3,10 +3,10 @@
  * @description src/app/api/map-layers/route.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 30
- * @size 0.63 KB
+ * @size 0.61 KB
  */
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";

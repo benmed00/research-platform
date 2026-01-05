@@ -1,6 +1,12 @@
 /**
  * @file page.tsx
- * @description Page de gestion des notifications
+ * @description src/app/dashboard/notifications/page.tsx
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 382
+ * @size 13.07 KB
  */
 "use client";
 

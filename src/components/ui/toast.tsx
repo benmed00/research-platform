@@ -3,10 +3,10 @@
  * @description src/components/ui/toast.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 125
- * @size 3.50 KB
+ * @size 3.39 KB
  */
 "use client";
 

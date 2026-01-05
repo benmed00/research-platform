@@ -3,10 +3,10 @@
  * @description scripts/setup-github-repo.ts
  * @author 1
  * @created 2025-01-27
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 245
- * @size 7.14 KB
+ * @size 6.90 KB
  */
 /**
  * Script to help set up GitHub repository

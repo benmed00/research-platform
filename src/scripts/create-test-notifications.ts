@@ -1,6 +1,12 @@
 /**
- * Script to create test notifications for all users
- * Run with: npx ts-node --project tsconfig.json src/scripts/create-test-notifications.ts
+ * @file create-test-notifications.ts
+ * @description src/scripts/create-test-notifications.ts
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 77
+ * @size 2.33 KB
  */
 import { PrismaClient } from "@prisma/client";
 

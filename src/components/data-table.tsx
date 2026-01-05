@@ -3,10 +3,10 @@
  * @description src/components/data-table.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 107
- * @size 3.14 KB
+ * @size 3.05 KB
  */
 "use client";
 

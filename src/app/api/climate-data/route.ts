@@ -3,10 +3,10 @@
  * @description src/app/api/climate-data/route.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
- * @lines 118
- * @size 3.25 KB
+ * @updated 2026-01-04
+ * @updates 3
+ * @lines 123
+ * @size 3.28 KB
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
