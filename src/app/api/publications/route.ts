@@ -3,10 +3,10 @@
  * @description src/app/api/publications/route.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
- * @lines 113
- * @size 3.06 KB
+ * @updated 2026-01-04
+ * @updates 3
+ * @lines 121
+ * @size 3.13 KB
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";

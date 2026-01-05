@@ -3,10 +3,10 @@
  * @description src/components/filter-bar.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 96
- * @size 2.64 KB
+ * @size 2.55 KB
  */
 "use client";
 

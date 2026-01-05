@@ -3,10 +3,10 @@
  * @description src/app/dashboard/page.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
- * @lines 301
- * @size 9.80 KB
+ * @updated 2026-01-04
+ * @updates 3
+ * @lines 305
+ * @size 9.65 KB
  */
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";

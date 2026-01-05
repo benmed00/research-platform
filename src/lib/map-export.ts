@@ -1,8 +1,13 @@
 /**
  * @file map-export.ts
- * @description Utility functions for exporting map data to GeoJSON and CSV
+ * @description src/lib/map-export.ts
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 255
+ * @size 6.02 KB
  */
-
 export interface MapExportData {
   missions?: Array<{
     id: string;

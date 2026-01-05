@@ -3,10 +3,10 @@
  * @description src/lib/hooks/use-debounce.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 29
- * @size 0.58 KB
+ * @size 0.56 KB
  */
 import { useState, useEffect } from "react";
 

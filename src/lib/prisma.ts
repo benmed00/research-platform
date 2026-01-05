@@ -3,10 +3,10 @@
  * @description src/lib/prisma.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 25
- * @size 0.55 KB
+ * @size 0.54 KB
  */
 import { PrismaClient } from "@prisma/client";
 

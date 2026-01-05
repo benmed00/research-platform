@@ -3,10 +3,10 @@
  * @description src/app/dashboard/documents/page.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
- * @lines 171
- * @size 6.81 KB
+ * @updated 2026-01-04
+ * @updates 3
+ * @lines 175
+ * @size 6.79 KB
  */
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";

@@ -1,5 +1,12 @@
 /**
- * Check password hash format
+ * @file check-password.ts
+ * @description scripts/check-password.ts
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 21
+ * @size 0.69 KB
  */
 import bcrypt from "bcryptjs";
 

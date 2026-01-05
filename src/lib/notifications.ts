@@ -1,6 +1,12 @@
 /**
  * @file notifications.ts
- * @description Utility functions for creating notifications automatically
+ * @description src/lib/notifications.ts
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 205
+ * @size 5.08 KB
  */
 import { prisma } from "@/lib/prisma";
 

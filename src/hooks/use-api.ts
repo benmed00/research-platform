@@ -3,10 +3,10 @@
  * @description src/hooks/use-api.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 69
- * @size 1.70 KB
+ * @size 1.64 KB
  */
 "use client";
 

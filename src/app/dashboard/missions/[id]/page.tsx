@@ -3,10 +3,10 @@
  * @description src/app/dashboard/missions/[id]/page.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
- * @lines 332
- * @size 11.93 KB
+ * @updated 2026-01-04
+ * @updates 3
+ * @lines 336
+ * @size 11.75 KB
  */
 import { prisma } from "@/lib/prisma";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
