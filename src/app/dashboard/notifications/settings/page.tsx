@@ -10,7 +10,7 @@
  */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -22,10 +22,10 @@ import { useNotifications } from "@/components/notifications/notification-provid
 
 export default function NotificationSettingsPage() {
   const router = useRouter();
-  const { success } = useNotifications();
+  const { success, error: showError } = useNotifications();
   const [loading, setLoading] = useState(false);
+  const [loadingPreferences, setLoadingPreferences] = useState(true);
   
-  // These would come from the database in a real implementation
   const [settings, setSettings] = useState({
     emailEnabled: true,
     pushEnabled: true,
@@ -36,20 +36,47 @@ export default function NotificationSettingsPage() {
     weeklyDigest: false,
   });
 
+  useEffect(() => {
+    const loadPreferences = async () => {
+      try {
+        const response = await fetch("/api/notifications/preferences");
+        if (response.ok) {
+          const data = await response.json();
+          setSettings(data);
+        }
+      } catch (error) {
+        console.error("Error loading preferences:", error);
+      } finally {
+        setLoadingPreferences(false);
+      }
+    };
+
+    loadPreferences();
+  }, []);
+
   const handleSave = async () => {
     setLoading(true);
-    // TODO: Implement API call to save preferences
-    // await fetch("/api/notifications/preferences", {
-    //   method: "PUT",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify(settings),
-    // });
-    
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/notifications/preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settings),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Erreur lors de la sauvegarde");
+      }
+
+      const updatedSettings = await response.json();
+      setSettings(updatedSettings);
       success("Préférences de notification sauvegardées");
+    } catch (error: any) {
+      console.error("Error saving preferences:", error);
+      showError("Erreur", error.message || "Erreur lors de la sauvegarde des préférences");
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   const handleToggle = (key: keyof typeof settings) => {
