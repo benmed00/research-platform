@@ -70,11 +70,12 @@ Ouvrir [http://localhost:3000](http://localhost:3000)
 
 ## 📖 Documentation
 
-- [Guide de Démarrage Rapide](./QUICKSTART.md) - Installation et configuration
-- [Architecture](./ARCHITECTURE.md) - Vue d'ensemble technique
+- [Guide de Démarrage Rapide](./docs/QUICKSTART.md) - Installation et configuration
+- [Architecture](./docs/ARCHITECTURE.md) - Vue d'ensemble technique
 - [Git Workflow Guide](./docs/GIT_WORKFLOW.md) - Guide complet du workflow Git/GitHub
-- [Git Setup Guide](./README_GIT_SETUP.md) - Guide de configuration Git rapide
-- [Contributing Guide](./CONTRIBUTING.md) - Guide de contribution au projet
+- [Git Setup Guide](./docs/README_GIT_SETUP.md) - Guide de configuration Git rapide
+- [Contributing Guide](./docs/CONTRIBUTING.md) - Guide de contribution au projet
+- [Documentation Standards](./docs/DOCUMENTATION_STANDARDS.md) - Standards et règles de documentation
 
 ## 🔄 Git & GitHub Workflow
 
@@ -105,7 +106,7 @@ npm run git:push
 npm run git:verify
 ```
 
-Voir [README_GIT_SETUP.md](./README_GIT_SETUP.md) pour plus de détails.
+Voir [README_GIT_SETUP.md](./docs/README_GIT_SETUP.md) pour plus de détails.
 
 ## 🔐 Connexion par défaut
 

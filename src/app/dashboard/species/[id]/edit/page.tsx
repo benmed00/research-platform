@@ -14,6 +14,10 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useToast } from "@/components/ui/toast";
+import { SkeletonCard } from "@/components/ui/skeleton";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 const types = [
   "FLORE_TERRESTRE",
@@ -46,6 +50,7 @@ const iucnLabels: Record<string, string> = {
 export default function EditSpeciesPage() {
   const router = useRouter();
   const params = useParams();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -72,10 +77,10 @@ export default function EditSpeciesPage() {
         setLoading(false);
       })
       .catch(() => {
-        alert("Erreur lors du chargement");
+        showToast("Erreur lors du chargement", "error");
         router.back();
       });
-  }, [params.id, router]);
+  }, [params.id, router, showToast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,48 +94,51 @@ export default function EditSpeciesPage() {
       });
 
       if (response.ok) {
+        showToast("Espèce modifiée avec succès!", "success");
         router.push(`/dashboard/species/${params.id}`);
       } else {
         const error = await response.json();
-        alert(error.error || "Erreur lors de la mise à jour");
+        showToast(error.error || "Erreur lors de la mise à jour", "error");
       }
     } catch (error) {
-      alert("Erreur lors de la mise à jour");
+      showToast("Erreur lors de la mise à jour", "error");
     } finally {
       setSaving(false);
     }
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mb-4"></div>
-          <p className="text-gray-600">Chargement...</p>
-        </div>
-      </div>
-    );
+    return <SkeletonCard count={1} className="h-[400px]" />;
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Modifier l&apos;espèce</h1>
-        <p className="text-gray-600 mt-2">
-          Modifier les informations de l&apos;espèce
-        </p>
+      <div className="flex items-center gap-4">
+        <Link href={`/dashboard/species/${params.id}`}>
+          <Button variant="ghost" size="icon" className="h-10 w-10">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+            Modifier l&apos;espèce
+          </h1>
+          <p className="text-base text-gray-600 dark:text-gray-400 mt-1.5">
+            Modifier les informations de l&apos;espèce
+          </p>
+        </div>
       </div>
 
-      <Card className="p-6">
+      <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Nom scientifique *
             </label>
             <input
               type="text"
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               value={formData.scientificName}
               onChange={(e) =>
                 setFormData({ ...formData, scientificName: e.target.value })
@@ -139,12 +147,12 @@ export default function EditSpeciesPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Nom commun
             </label>
             <input
               type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               value={formData.commonName}
               onChange={(e) =>
                 setFormData({ ...formData, commonName: e.target.value })
@@ -154,12 +162,12 @@ export default function EditSpeciesPage() {
 
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Type *
               </label>
               <select
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                 value={formData.type}
                 onChange={(e) =>
                   setFormData({ ...formData, type: e.target.value })
@@ -173,11 +181,11 @@ export default function EditSpeciesPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Statut UICN
               </label>
               <select
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                 value={formData.iucnStatus}
                 onChange={(e) =>
                   setFormData({ ...formData, iucnStatus: e.target.value })
@@ -194,12 +202,12 @@ export default function EditSpeciesPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Habitat
             </label>
             <input
               type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               value={formData.habitat}
               onChange={(e) =>
                 setFormData({ ...formData, habitat: e.target.value })
@@ -208,12 +216,12 @@ export default function EditSpeciesPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Description
             </label>
             <textarea
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
