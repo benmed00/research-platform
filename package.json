@@ -25,7 +25,8 @@
     "git:pr-desc": "ts-node --project tsconfig.seed.json scripts/git-workflow.ts pr-desc",
     "git:verify": "ts-node --project tsconfig.seed.json scripts/verify-git-setup.ts",
     "github:setup": "ts-node --project tsconfig.seed.json scripts/setup-github-repo.ts",
-    "github:create": "powershell -ExecutionPolicy Bypass -File scripts/create-github-repo.ps1"
+    "github:create": "powershell -ExecutionPolicy Bypass -File scripts/create-github-repo.ps1",
+    "add-pr-metadata": "ts-node --project tsconfig.seed.json scripts/add-pr-metadata.ts"
   },
   "prisma": {
     "seed": "ts-node --project tsconfig.seed.json prisma/seed.ts"
