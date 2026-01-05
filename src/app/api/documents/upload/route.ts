@@ -14,10 +14,20 @@ import { authOptions } from "@/lib/auth";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { existsSync } from "fs";
+import { withRateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
+  // Get session first for identifier
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+  }
+
+  return withRateLimit(
+    request,
+    { ...rateLimitConfigs.upload, identifier: session.user.id },
+    async () => {
+      try {
     if (!session) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
@@ -48,19 +58,21 @@ export async function POST(request: NextRequest) {
     // Return file URL
     const fileUrl = `/uploads/documents/${filename}`;
 
-    return NextResponse.json({
-      fileUrl,
-      fileName: file.name,
-      fileSize: file.size,
-      mimeType: file.type,
-    });
-  } catch (error: any) {
-    console.error("Error uploading file:", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur lors de l'upload" },
-      { status: 500 }
-    );
-  }
+        return NextResponse.json({
+          fileUrl,
+          fileName: file.name,
+          fileSize: file.size,
+          mimeType: file.type,
+        });
+      } catch (error: any) {
+        console.error("Error uploading file:", error);
+        return NextResponse.json(
+          { error: error.message || "Erreur lors de l'upload" },
+          { status: 500 }
+        );
+      }
+    }
+  );
 }
 
 

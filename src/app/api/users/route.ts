@@ -13,13 +13,19 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { withRateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+  }
+
+  return withRateLimit(
+    request,
+    { ...rateLimitConfigs.api, identifier: session.user.id },
+    async () => {
+      try {
 
     const data = await request.json();
     const { firstName, lastName, email, password, role } = data;
@@ -61,14 +67,16 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(user, { status: 201 });
-  } catch (error) {
-    console.error("Error creating user:", error);
-    return NextResponse.json(
-      { error: "Erreur lors de la création" },
-      { status: 500 }
-    );
-  }
+        return NextResponse.json(user, { status: 201 });
+      } catch (error) {
+        console.error("Error creating user:", error);
+        return NextResponse.json(
+          { error: "Erreur lors de la création" },
+          { status: 500 }
+        );
+      }
+    }
+  );
 }
 
 export async function GET(request: NextRequest) {

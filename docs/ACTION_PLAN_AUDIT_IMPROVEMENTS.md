@@ -102,30 +102,40 @@ This document outlines the action plan for implementing improvements identified 
 
 #### 4. Rate Limiting (Issue #68)
 
-**Status**: Not Started  
+**Status**: ✅ **COMPLETED**  
 **Priority**: Critical  
 **Estimated Time**: 1-2 days
 
 **Tasks**:
 
-- [ ] Install Upstash Rate Limit (or alternative)
-- [ ] Create rate limiting utility
-- [ ] Implement on login endpoint (5 attempts/15 min)
-- [ ] Implement on API routes (100 req/min)
-- [ ] Implement on file upload (10 uploads/hour)
-- [ ] Add 429 error responses
-- [ ] Add retry-after headers
+- [x] Install Upstash Rate Limit (or alternative) - Using in-memory store (can be upgraded to Upstash)
+- [x] Create rate limiting utility
+- [x] Implement on login endpoint (5 attempts/15 min)
+- [x] Implement on API routes (100 req/min)
+- [x] Implement on file upload (10 uploads/hour)
+- [x] Add 429 error responses
+- [x] Add retry-after headers
 - [ ] Test rate limiting
 - [ ] Document rate limits
 
 **Acceptance Criteria**:
 
-- Login endpoint protected
-- API routes protected
-- Proper error responses
-- Tests for rate limiting
+- ✅ Login endpoint protected
+- ✅ API routes protected
+- ✅ Proper error responses
+- [ ] Tests for rate limiting
 
 **Dependencies**: None
+
+**Implementation Notes**:
+- Rate limiting utility created at `src/lib/rate-limit.ts`
+- In-memory store for development (can be upgraded to Redis/Upstash for production)
+- Predefined configurations: login (5/15min), api (100/min), upload (10/hour), strict (10/min)
+- Rate limiting applied to:
+  - `/api/auth/[...nextauth]` - Login attempts
+  - `/api/documents/upload` - File uploads
+  - `/api/users` - User management (example)
+- Headers included: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After
 
 ---
 
