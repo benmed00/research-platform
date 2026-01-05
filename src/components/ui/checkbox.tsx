@@ -1,3 +1,13 @@
+/**
+ * @file checkbox.tsx
+ * @description src/components/ui/checkbox.tsx
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 48
+ * @size 1.29 KB
+ */
 "use client";
 
 import * as React from "react";

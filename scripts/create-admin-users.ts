@@ -1,6 +1,12 @@
 /**
- * Script to create admin and superadmin user accounts
- * Run with: npx tsx scripts/create-admin-users.ts
+ * @file create-admin-users.ts
+ * @description scripts/create-admin-users.ts
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 83
+ * @size 2.74 KB
  */
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";

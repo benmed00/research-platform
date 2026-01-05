@@ -3,10 +3,10 @@
  * @description src/lib/dashboard-queries.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 528
- * @size 13.10 KB
+ * @size 12.59 KB
  */
 import { prisma } from "./prisma";
 import { addDays, addMonths, startOfMonth, endOfMonth } from "date-fns";

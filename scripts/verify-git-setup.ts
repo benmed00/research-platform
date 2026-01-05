@@ -3,10 +3,10 @@
  * @description scripts/verify-git-setup.ts
  * @author 1
  * @created 2025-01-27
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 134
- * @size 3.87 KB
+ * @size 3.74 KB
  */
 /**
  * Script to verify Git and GitHub setup

@@ -1,3 +1,13 @@
+/**
+ * @file missions-charts.tsx
+ * @description src/components/charts/missions-charts.tsx
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 279
+ * @size 8.03 KB
+ */
 "use client";
 
 import {

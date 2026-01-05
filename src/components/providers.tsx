@@ -3,10 +3,10 @@
  * @description src/components/providers.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
- * @lines 27
- * @size 0.64 KB
+ * @updated 2026-01-04
+ * @updates 3
+ * @lines 30
+ * @size 0.77 KB
  */
 "use client";
 

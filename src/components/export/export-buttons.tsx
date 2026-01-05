@@ -1,3 +1,13 @@
+/**
+ * @file export-buttons.tsx
+ * @description src/components/export/export-buttons.tsx
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 84
+ * @size 2.50 KB
+ */
 "use client";
 
 import { Button } from "@/components/ui/button";

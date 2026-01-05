@@ -1,6 +1,12 @@
 /**
  * @file notification-provider.tsx
- * @description Notification provider and context for toast notifications
+ * @description src/components/notifications/notification-provider.tsx
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 177
+ * @size 5.32 KB
  */
 "use client";
 

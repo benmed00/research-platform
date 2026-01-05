@@ -1,3 +1,13 @@
+/**
+ * @file notification-bell.tsx
+ * @description src/components/notifications/notification-bell.tsx
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 226
+ * @size 7.88 KB
+ */
 "use client";
 
 import { useState, useEffect } from "react";

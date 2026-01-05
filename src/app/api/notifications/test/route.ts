@@ -1,6 +1,12 @@
 /**
  * @file route.ts
- * @description Test route to create sample notifications
+ * @description src/app/api/notifications/test/route.ts
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 69
+ * @size 2.14 KB
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";

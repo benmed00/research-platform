@@ -1,16 +1,14 @@
 /**
- * Script to create sample issues for the Research Platform project
- * 
- * This script creates initial issues organized by milestone to populate
- * the project board with meaningful tasks.
- * 
- * Usage:
- *   ts-node --project tsconfig.seed.json scripts/create-sample-issues.ts
- * 
- * Note: Requires GitHub CLI (gh) to be installed and authenticated
+ * @file create-sample-issues.ts
+ * @description scripts/create-sample-issues.ts
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 220
+ * @size 6.01 KB
  */
-
-import { execSync } from 'child_process';
+import { execSync, execFileSync } from 'child_process';
 
 interface Issue {
   title: string;
@@ -148,17 +146,22 @@ function createIssue(issue: Issue): void {
   try {
     console.log(`Creating issue: ${issue.title}`);
     
-    // Build the gh issue create command
+    // Build the gh issue create command arguments
     const labels = issue.labels.join(',');
-    const body = issue.body.replace(/"/g, '\\"');
+    const args = [
+      'issue',
+      'create',
+      '--title',
+      issue.title,
+      '--body',
+      issue.body,
+      '--milestone',
+      issue.milestone,
+      '--label',
+      labels
+    ];
     
-    const command = `gh issue create ` +
-      `--title "${issue.title}" ` +
-      `--body "${body}" ` +
-      `--milestone "${issue.milestone}" ` +
-      `--label "${labels}"`;
-    
-    execSync(command, { stdio: 'inherit', encoding: 'utf-8' });
+    execFileSync('gh', args, { stdio: 'inherit', encoding: 'utf-8' });
     console.log(`✅ Created: ${issue.title}\n`);
   } catch (error) {
     console.error(`❌ Failed to create issue: ${issue.title}`);

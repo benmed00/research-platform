@@ -3,10 +3,10 @@
  * @description src/components/dashboard/role-dashboard.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 256
- * @size 8.91 KB
+ * @size 8.67 KB
  */
 "use client";
 

@@ -1,6 +1,12 @@
 /**
  * @file map-filters.tsx
- * @description Component for filtering map data (species, missions, etc.)
+ * @description src/components/map/map-filters.tsx
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 247
+ * @size 8.13 KB
  */
 "use client";
 

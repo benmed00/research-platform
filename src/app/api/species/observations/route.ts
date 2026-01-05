@@ -1,5 +1,12 @@
 /**
- * API route for species observations
+ * @file route.ts
+ * @description src/app/api/species/observations/route.ts
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 48
+ * @size 1.23 KB
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";

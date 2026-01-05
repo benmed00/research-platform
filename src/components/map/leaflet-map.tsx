@@ -3,10 +3,10 @@
  * @description src/components/map/leaflet-map.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
- * @lines 322
- * @size 10.86 KB
+ * @updated 2026-01-04
+ * @updates 3
+ * @lines 280
+ * @size 10.32 KB
  */
 "use client";
 

@@ -3,10 +3,10 @@
  * @description src/components/ui/card.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 100
- * @size 2.60 KB
+ * @size 2.51 KB
  */
 import * as React from "react";
 import { cn } from "@/lib/utils";
