@@ -269,7 +269,7 @@ This document outlines the action plan for implementing improvements identified 
 
 ## Implementation Timeline
 
-```
+```text
 Week 1-2: Critical Security & Quality
 ├── Testing Framework (3-5 days)
 ├── Security Headers (1-2 days)

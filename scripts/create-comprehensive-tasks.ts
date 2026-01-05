@@ -675,17 +675,6 @@ function createIssue(task: Task): void {
     console.log(`Creating: ${task.title}`);
     
     const labels = task.labels.join(',');
-<<<<<<< HEAD
-    const body = task.body.replace(/"/g, '\\"');
-    
-    const command = `gh issue create ` +
-      `--title "${task.title}" ` +
-      `--body "${body}" ` +
-      `--milestone "${task.milestone}" ` +
-      `--label "${labels}"`;
-    
-    execSync(command, { stdio: 'inherit', encoding: 'utf-8' });
-=======
     const args = [
       'issue',
       'create',
@@ -700,7 +689,6 @@ function createIssue(task: Task): void {
     ];
     
     execFileSync('gh', args, { stdio: 'inherit', encoding: 'utf-8' });
->>>>>>> 4bfd5d5aca1973cea6018f176e18938632d8e64f
     console.log(`✅ Created: ${task.title}\n`);
   } catch (error) {
     console.error(`❌ Failed: ${task.title}`);

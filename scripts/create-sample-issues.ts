@@ -146,19 +146,6 @@ function createIssue(issue: Issue): void {
   try {
     console.log(`Creating issue: ${issue.title}`);
     
-<<<<<<< HEAD
-    // Build the gh issue create command
-    const labels = issue.labels.join(',');
-    const body = issue.body.replace(/"/g, '\\"');
-    
-    const command = `gh issue create ` +
-      `--title "${issue.title}" ` +
-      `--body "${body}" ` +
-      `--milestone "${issue.milestone}" ` +
-      `--label "${labels}"`;
-    
-    execSync(command, { stdio: 'inherit', encoding: 'utf-8' });
-=======
     // Build the gh issue create command arguments
     const labels = issue.labels.join(',');
     const args = [
@@ -175,7 +162,6 @@ function createIssue(issue: Issue): void {
     ];
     
     execFileSync('gh', args, { stdio: 'inherit', encoding: 'utf-8' });
->>>>>>> 4bfd5d5aca1973cea6018f176e18938632d8e64f
     console.log(`✅ Created: ${issue.title}\n`);
   } catch (error) {
     console.error(`❌ Failed to create issue: ${issue.title}`);
