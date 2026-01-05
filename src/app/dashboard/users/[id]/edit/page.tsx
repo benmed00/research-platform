@@ -20,6 +20,8 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useApi } from "@/hooks/use-api";
+import { useToast } from "@/components/ui/toast";
+import { SkeletonCard } from "@/components/ui/skeleton";
 
 const roles = [
   "DIRECTEUR_SCIENTIFIQUE",
@@ -61,6 +63,7 @@ export default function EditUserPage() {
   const router = useRouter();
   const params = useParams();
   const { handleApiCall } = useApi();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -76,7 +79,7 @@ export default function EditUserPage() {
       .then((r) => r.json())
       .then((data) => {
         if (data.error) {
-          alert(data.error);
+          showToast(data.error, "error");
           router.back();
           return;
         }
@@ -91,17 +94,17 @@ export default function EditUserPage() {
         setLoading(false);
       })
       .catch(() => {
-        alert("Erreur lors du chargement");
+        showToast("Erreur lors du chargement", "error");
         router.back();
       });
-  }, [params.id, router]);
+  }, [params.id, router, showToast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validate required fields
     if (!formData.firstName || !formData.lastName || !formData.email) {
-      alert("Veuillez remplir tous les champs obligatoires");
+      showToast("Veuillez remplir tous les champs obligatoires", "error");
       return;
     }
 
@@ -117,7 +120,7 @@ export default function EditUserPage() {
     // Only include password if provided
     if (formData.password && formData.password.trim() !== "") {
       if (formData.password.length < 8) {
-        alert("Le mot de passe doit contenir au moins 8 caractères");
+        showToast("Le mot de passe doit contenir au moins 8 caractères", "error");
         return;
       }
       updateData.password = formData.password;
@@ -138,14 +141,7 @@ export default function EditUserPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mb-4"></div>
-          <p className="text-gray-600">Chargement...</p>
-        </div>
-      </div>
-    );
+    return <SkeletonCard count={1} className="h-[400px]" />;
   }
 
   return (

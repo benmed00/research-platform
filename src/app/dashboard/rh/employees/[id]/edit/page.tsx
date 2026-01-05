@@ -18,6 +18,8 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
+import { SkeletonCard } from "@/components/ui/skeleton";
 
 const contractTypes = ["CDI", "CDD", "STAGE", "CONSULTANT"];
 
@@ -31,6 +33,7 @@ const contractTypeLabels: Record<string, string> = {
 export default function EditEmployeePage() {
   const router = useRouter();
   const params = useParams();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -63,10 +66,10 @@ export default function EditEmployeePage() {
         setLoading(false);
       })
       .catch(() => {
-        alert("Erreur lors du chargement");
+        showToast("Erreur lors du chargement", "error");
         router.back();
       });
-  }, [params.id, router]);
+  }, [params.id, router, showToast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,24 +83,21 @@ export default function EditEmployeePage() {
       });
 
       if (response.ok) {
+        showToast("Employé modifié avec succès!", "success");
         router.push(`/dashboard/rh/employees/${params.id}`);
       } else {
         const error = await response.json();
-        alert(error.error || "Erreur lors de la mise à jour");
+        showToast(error.error || "Erreur lors de la mise à jour", "error");
       }
     } catch (error) {
-      alert("Erreur lors de la mise à jour");
+      showToast("Erreur lors de la mise à jour", "error");
     } finally {
       setSaving(false);
     }
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Chargement...</p>
-      </div>
-    );
+    return <SkeletonCard count={1} className="h-[400px]" />;
   }
 
   return (
@@ -111,17 +111,21 @@ export default function EditEmployeePage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Modifier l&apos;employé</h1>
-            <p className="text-gray-600 mt-2">Mettre à jour les informations de l&apos;employé</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+              Modifier l&apos;employé
+            </h1>
+            <p className="text-base text-gray-600 dark:text-gray-400 mt-1.5">
+              Mettre à jour les informations de l&apos;employé
+            </p>
           </div>
         </div>
       </div>
 
-      <Card className="p-6">
+      <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Numéro d&apos;employé
               </label>
               <Input
@@ -134,7 +138,7 @@ export default function EditEmployeePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Date d&apos;embauche
               </label>
               <Input
@@ -146,7 +150,7 @@ export default function EditEmployeePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Type de contrat
               </label>
               <Select
@@ -163,7 +167,7 @@ export default function EditEmployeePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Début du contrat
               </label>
               <Input
@@ -175,7 +179,7 @@ export default function EditEmployeePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Fin du contrat (optionnel)
               </label>
               <Input

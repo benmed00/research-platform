@@ -8,6 +8,7 @@
  * @lines 86
  * @size 2.39 KB
  */
+import React from "react";
 import { cn } from "@/lib/utils";
 
 interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -32,13 +33,28 @@ export function Skeleton({ className, variant = "default", ...props }: SkeletonP
   );
 }
 
-export function SkeletonCard() {
+interface SkeletonCardProps extends React.HTMLAttributes<HTMLDivElement> {
+  count?: number;
+}
+
+export function SkeletonCard({ count = 1, className, ...props }: SkeletonCardProps) {
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-800 p-6 space-y-4">
-      <Skeleton className="h-4 w-3/4" />
-      <Skeleton className="h-4 w-1/2" />
-      <Skeleton className="h-4 w-5/6" />
-    </div>
+    <>
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          key={i}
+          className={cn(
+            "rounded-lg border border-gray-200 dark:border-gray-800 p-6 space-y-4",
+            className
+          )}
+          {...props}
+        >
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-4 w-5/6" />
+        </div>
+      ))}
+    </>
   );
 }
 
