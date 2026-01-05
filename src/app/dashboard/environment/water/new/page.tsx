@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { waterQualitySchema } from "@/lib/validations";
 import type { z } from "zod";
+import { useToast } from "@/components/ui/toast";
 
 type WaterQualityFormData = z.infer<typeof waterQualitySchema>;
 
@@ -32,6 +33,7 @@ const waterTypeLabels: Record<string, string> = {
 
 export default function NewWaterQualityPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const {
     register,
     handleSubmit,
@@ -52,33 +54,38 @@ export default function NewWaterQualityPage() {
       });
 
       if (response.ok) {
+        showToast("Mesure de qualité de l'eau créée avec succès!", "success");
         router.push("/dashboard/environment");
       } else {
         const error = await response.json();
-        alert(error.error || "Erreur lors de la création");
+        showToast(error.error || "Erreur lors de la création", "error");
       }
     } catch (error) {
-      alert("Erreur lors de la création");
+      showToast("Erreur lors de la création", "error");
     }
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Nouvelle mesure de qualité de l&apos;eau</h1>
-        <p className="text-gray-600 mt-2">Enregistrer une nouvelle mesure</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+          Nouvelle mesure de qualité de l&apos;eau
+        </h1>
+        <p className="text-base text-gray-600 dark:text-gray-400 mt-1.5">
+          Enregistrer une nouvelle mesure
+        </p>
       </div>
 
-      <Card className="p-6">
+      <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Type d&apos;eau *
               </label>
               <select
                 {...register("type")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 {waterTypes.map((type) => (
                   <option key={type} value={type}>
