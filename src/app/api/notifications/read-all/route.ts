@@ -1,6 +1,12 @@
 /**
  * @file route.ts
- * @description API route to mark all notifications as read
+ * @description src/app/api/notifications/read-all/route.ts
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 38
+ * @size 0.93 KB
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";

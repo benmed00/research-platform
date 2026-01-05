@@ -1,5 +1,12 @@
 /**
- * Global search API route
+ * @file route.ts
+ * @description src/app/api/search/route.ts
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 197
+ * @size 5.00 KB
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";

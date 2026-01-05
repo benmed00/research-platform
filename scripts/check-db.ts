@@ -3,10 +3,10 @@
  * @description scripts/check-db.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 142
- * @size 4.87 KB
+ * @size 4.73 KB
  */
 import { PrismaClient } from "@prisma/client";
 

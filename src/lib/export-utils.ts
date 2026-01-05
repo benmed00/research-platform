@@ -1,7 +1,13 @@
 /**
- * Utility functions for exporting data to Excel and PDF
+ * @file export-utils.ts
+ * @description src/lib/export-utils.ts
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 109
+ * @size 2.23 KB
  */
-
 export type ExportType = 
   | "missions" 
   | "species" 

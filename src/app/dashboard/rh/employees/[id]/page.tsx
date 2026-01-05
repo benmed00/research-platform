@@ -3,10 +3,10 @@
  * @description src/app/dashboard/rh/employees/[id]/page.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
- * @lines 416
- * @size 14.88 KB
+ * @updated 2026-01-04
+ * @updates 3
+ * @lines 420
+ * @size 14.62 KB
  */
 import { prisma } from "@/lib/prisma";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";

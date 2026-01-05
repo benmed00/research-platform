@@ -3,10 +3,10 @@
  * @description src/types/next-auth.d.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 39
- * @size 0.60 KB
+ * @size 0.58 KB
  */
 import "next-auth";
 import { UserRole } from "@prisma/client";

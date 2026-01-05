@@ -3,10 +3,10 @@
  * @description src/app/dashboard/environment/air/new/page.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 162
- * @size 5.15 KB
+ * @size 5.00 KB
  */
 "use client";
 

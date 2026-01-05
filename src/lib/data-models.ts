@@ -3,10 +3,10 @@
  * @description src/lib/data-models.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 320
- * @size 6.79 KB
+ * @size 6.49 KB
  */
 // ============================================
 // CORE ENTITY MODELS

@@ -1,3 +1,13 @@
+/**
+ * @file missions-filters.tsx
+ * @description src/components/filters/missions-filters.tsx
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 173
+ * @size 5.13 KB
+ */
 "use client";
 
 import { useState } from "react";

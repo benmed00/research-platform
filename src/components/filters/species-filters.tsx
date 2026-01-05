@@ -1,3 +1,13 @@
+/**
+ * @file species-filters.tsx
+ * @description src/components/filters/species-filters.tsx
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 186
+ * @size 5.83 KB
+ */
 "use client";
 
 import { useState } from "react";

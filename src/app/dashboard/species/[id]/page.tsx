@@ -3,10 +3,10 @@
  * @description src/app/dashboard/species/[id]/page.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
- * @lines 355
- * @size 12.95 KB
+ * @updated 2026-01-04
+ * @updates 3
+ * @lines 359
+ * @size 12.75 KB
  */
 import { prisma } from "@/lib/prisma";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";

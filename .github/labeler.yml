@@ -1,51 +1,35 @@
 # Auto-label PRs based on file changes
+# Format for actions/labeler@v5
 
-'enhancement':
-  - 'src/**/*.ts'
-  - 'src/**/*.tsx'
-  - '!src/**/*.test.ts'
-  - '!src/**/*.spec.ts'
+enhancement:
+  - any: ['src/**/*.ts', 'src/**/*.tsx']
+    all: ['!src/**/*.test.ts', '!src/**/*.spec.ts']
 
-'bug':
-  - 'src/**/*.ts'
-  - 'src/**/*.tsx'
-  - '!src/**/*.test.ts'
-  - '!src/**/*.spec.ts'
+bug:
+  - any: ['src/**/*.ts', 'src/**/*.tsx']
+    all: ['!src/**/*.test.ts', '!src/**/*.spec.ts']
 
-'documentation':
-  - '*.md'
-  - 'docs/**'
-  - 'README*.md'
-  - 'CONTRIBUTING.md'
-  - '.github/**/*.md'
+documentation:
+  - any: ['*.md', 'docs/**', 'README*.md', 'CONTRIBUTING.md', '.github/**/*.md', 'wiki/**']
 
-'dependencies':
-  - 'package.json'
-  - 'package-lock.json'
-  - 'yarn.lock'
-  - 'pnpm-lock.yaml'
+dependencies:
+  - any: ['package.json', 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml']
 
 'github-actions':
-  - '.github/workflows/**'
-  - '.github/actions/**'
+  - any: ['.github/workflows/**', '.github/actions/**']
 
-'testing':
-  - '**/*.test.ts'
-  - '**/*.test.tsx'
-  - '**/*.spec.ts'
-  - '**/*.spec.tsx'
-  - 'jest.config.*'
-  - 'vitest.config.*'
+testing:
+  - any: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx', 'jest.config.*', 'vitest.config.*']
 
-'prisma':
-  - 'prisma/**'
+prisma:
+  - any: ['prisma/**']
 
-'api':
-  - 'src/app/api/**'
+api:
+  - any: ['src/app/api/**']
 
-'components':
-  - 'src/components/**'
+components:
+  - any: ['src/components/**']
 
-'lib':
-  - 'src/lib/**'
+lib:
+  - any: ['src/lib/**']
 

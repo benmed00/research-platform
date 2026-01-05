@@ -3,10 +3,10 @@
  * @description src/components/ui/file-upload.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 209
- * @size 6.25 KB
+ * @size 6.05 KB
  */
 "use client";
 

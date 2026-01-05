@@ -3,10 +3,10 @@
  * @description src/components/ui/empty-state.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 55
- * @size 1.23 KB
+ * @size 1.19 KB
  */
 import * as React from "react";
 import { cn } from "@/lib/utils";
