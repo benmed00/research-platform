@@ -13,6 +13,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notifyNewMission } from "@/lib/notifications";
+import { parsePagination, createPaginatedResponse } from "@/lib/pagination";
+import { loggerHelpers } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -99,41 +101,51 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const missions = await prisma.mission.findMany({
-      include: {
-        creator: {
-          select: {
-            firstName: true,
-            lastName: true,
+    const { page, limit, skip, take } = parsePagination(request);
+
+    const [missions, total] = await Promise.all([
+      prisma.mission.findMany({
+        skip,
+        take,
+        include: {
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
           },
-        },
-        teams: {
-          include: {
-            user: {
-              select: {
-                firstName: true,
-                lastName: true,
+          teams: {
+            include: {
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                },
               },
             },
           },
-        },
-        _count: {
-          select: {
-            equipment: true,
+          _count: {
+            select: {
+              equipment: true,
+            },
           },
         },
-      },
-      orderBy: { startDate: "desc" },
-    });
+        orderBy: { startDate: "desc" },
+      }),
+      prisma.mission.count(),
+    ]);
 
     // Cache for 5 minutes
-    return NextResponse.json(missions, {
+    return NextResponse.json(createPaginatedResponse(missions, total, page, limit), {
       headers: {
         'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
       },
     });
   } catch (error) {
-    console.error("Error fetching missions:", error);
+    loggerHelpers.apiError(error as Error, {
+      route: "/api/missions",
+      method: "GET",
+    });
     return NextResponse.json(
       { error: "Erreur lors de la récupération" },
       { status: 500 }

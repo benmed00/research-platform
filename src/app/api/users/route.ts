@@ -15,6 +15,7 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { withRateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 import { loggerHelpers } from "@/lib/logger";
+import { parsePagination, createPaginatedResponse } from "@/lib/pagination";
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -91,20 +92,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const users = await prisma.user.findMany({
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        role: true,
-        isActive: true,
-        createdAt: true,
-      },
-    });
+    const { page, limit, skip, take } = parsePagination(request);
 
-    return NextResponse.json(users);
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        skip,
+        take,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          role: true,
+          isActive: true,
+          createdAt: true,
+        },
+      }),
+      prisma.user.count(),
+    ]);
+
+    return NextResponse.json(createPaginatedResponse(users, total, page, limit));
   } catch (error) {
     loggerHelpers.apiError(error as Error, {
       route: "/api/users",

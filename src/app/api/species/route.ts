@@ -13,6 +13,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notifyNewSpecies } from "@/lib/notifications";
+import { parsePagination, createPaginatedResponse } from "@/lib/pagination";
+import { loggerHelpers } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -74,31 +76,40 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type") as any;
+    const { page, limit, skip, take } = parsePagination(request);
 
     const where = type ? { type } : {};
 
-    const species = await prisma.species.findMany({
-      where,
-      include: {
-        _count: {
-          select: {
-            observations: true,
-            locations: true,
-            photos: true,
+    const [species, total] = await Promise.all([
+      prisma.species.findMany({
+        where,
+        skip,
+        take,
+        include: {
+          _count: {
+            select: {
+              observations: true,
+              locations: true,
+              photos: true,
+            },
           },
         },
-      },
-      orderBy: { scientificName: "asc" },
-    });
+        orderBy: { scientificName: "asc" },
+      }),
+      prisma.species.count({ where }),
+    ]);
 
     // Cache for 5 minutes
-    return NextResponse.json(species, {
+    return NextResponse.json(createPaginatedResponse(species, total, page, limit), {
       headers: {
         'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
       },
     });
   } catch (error) {
-    console.error("Error fetching species:", error);
+    loggerHelpers.apiError(error as Error, {
+      route: "/api/species",
+      method: "GET",
+    });
     return NextResponse.json(
       { error: "Erreur lors de la récupération" },
       { status: 500 }

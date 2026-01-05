@@ -12,6 +12,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { parsePagination, createPaginatedResponse } from "@/lib/pagination";
+import { loggerHelpers } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,7 +59,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(equipment, { status: 201 });
   } catch (error: any) {
-    console.error("Error creating equipment:", error);
+    const currentSession = await getServerSession(authOptions);
+    loggerHelpers.apiError(error as Error, {
+      route: "/api/equipment",
+      method: "POST",
+      userId: currentSession?.user?.id,
+    });
     return NextResponse.json(
       { error: error.message || "Erreur lors de la création" },
       { status: 500 }
@@ -72,24 +79,34 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const equipment = await prisma.equipment.findMany({
-      include: {
-        maintenances: {
-          take: 1,
-          orderBy: { date: "desc" },
+    const { page, limit, skip, take } = parsePagination(request);
+
+    const [equipment, total] = await Promise.all([
+      prisma.equipment.findMany({
+        skip,
+        take,
+        include: {
+          maintenances: {
+            take: 1,
+            orderBy: { date: "desc" },
+          },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.equipment.count(),
+    ]);
 
     // Cache for 5 minutes
-    return NextResponse.json(equipment, {
+    return NextResponse.json(createPaginatedResponse(equipment, total, page, limit), {
       headers: {
         'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
       },
     });
   } catch (error) {
-    console.error("Error fetching equipment:", error);
+    loggerHelpers.apiError(error as Error, {
+      route: "/api/equipment",
+      method: "GET",
+    });
     return NextResponse.json(
       { error: "Erreur lors de la récupération" },
       { status: 500 }
