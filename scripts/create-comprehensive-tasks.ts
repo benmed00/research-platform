@@ -1,9 +1,14 @@
 /**
- * Script to create comprehensive tasks based on project status
- * Analyzes current implementation and creates tasks for all milestones
+ * @file create-comprehensive-tasks.ts
+ * @description scripts/create-comprehensive-tasks.ts
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 736
+ * @size 18.32 KB
  */
-
-import { execSync } from 'child_process';
+import { execSync, execFileSync } from 'child_process';
 
 interface Task {
   title: string;
@@ -670,6 +675,7 @@ function createIssue(task: Task): void {
     console.log(`Creating: ${task.title}`);
     
     const labels = task.labels.join(',');
+<<<<<<< HEAD
     const body = task.body.replace(/"/g, '\\"');
     
     const command = `gh issue create ` +
@@ -679,6 +685,22 @@ function createIssue(task: Task): void {
       `--label "${labels}"`;
     
     execSync(command, { stdio: 'inherit', encoding: 'utf-8' });
+=======
+    const args = [
+      'issue',
+      'create',
+      '--title',
+      task.title,
+      '--body',
+      task.body,
+      '--milestone',
+      task.milestone,
+      '--label',
+      labels
+    ];
+    
+    execFileSync('gh', args, { stdio: 'inherit', encoding: 'utf-8' });
+>>>>>>> 4bfd5d5aca1973cea6018f176e18938632d8e64f
     console.log(`✅ Created: ${task.title}\n`);
   } catch (error) {
     console.error(`❌ Failed: ${task.title}`);

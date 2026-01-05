@@ -3,10 +3,10 @@
  * @description src/app/dashboard/environment/air/page.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
- * @lines 130
- * @size 5.54 KB
+ * @updated 2026-01-04
+ * @updates 3
+ * @lines 134
+ * @size 5.55 KB
  */
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";

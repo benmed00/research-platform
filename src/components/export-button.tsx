@@ -3,10 +3,10 @@
  * @description src/components/export-button.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 98
- * @size 2.84 KB
+ * @size 2.75 KB
  */
 "use client";
 

@@ -3,10 +3,10 @@
  * @description src/app/dashboard/documents/[id]/edit/page.tsx
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
+ * @updated 2026-01-04
+ * @updates 3
  * @lines 196
- * @size 6.00 KB
+ * @size 5.82 KB
  */
 "use client";
 

@@ -1,3 +1,13 @@
+/**
+ * @file species-charts.tsx
+ * @description src/components/charts/species-charts.tsx
+ * @author github-actions[bot]
+ * @created 2026-01-04
+ * @updated 2026-01-04
+ * @updates 1
+ * @lines 303
+ * @size 8.79 KB
+ */
 "use client";
 
 import {

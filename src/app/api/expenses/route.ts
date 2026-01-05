@@ -3,10 +3,10 @@
  * @description src/app/api/expenses/route.ts
  * @author 1
  * @created 2026-01-01
- * @updated 2026-01-01
- * @updates 2
- * @lines 106
- * @size 2.70 KB
+ * @updated 2026-01-04
+ * @updates 3
+ * @lines 111
+ * @size 2.75 KB
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
