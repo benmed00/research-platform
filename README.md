@@ -14,6 +14,20 @@ Plateforme web centrale (ERP + plateforme scientifique) pour un centre de recher
 
 ## 📦 Installation
 
+### Option 1: Docker (Recommended)
+
+See [Docker Setup Guide](./docs/DOCKER_SETUP.md) for complete instructions.
+
+```bash
+# Start with Docker Compose
+docker-compose up -d
+
+# Run migrations
+docker-compose exec app npx prisma migrate deploy
+```
+
+### Option 2: Local Development
+
 ```bash
 npm install
 ```

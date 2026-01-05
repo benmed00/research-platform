@@ -136,4 +136,3 @@ const users = await response.json();
 // New code
 const { data: users } = await response.json();
 ```
-
