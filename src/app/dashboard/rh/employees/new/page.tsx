@@ -23,11 +23,13 @@ import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { employeeSchema } from "@/lib/validations";
 import type { z } from "zod";
+import { useToast } from "@/components/ui/toast";
 
 type EmployeeFormData = z.infer<typeof employeeSchema>;
 
 export default function NewEmployeePage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [users, setUsers] = useState<any[]>([]);
   const {
     register,
@@ -55,13 +57,14 @@ export default function NewEmployeePage() {
       });
 
       if (response.ok) {
+        showToast("Employé créé avec succès!", "success");
         router.push("/dashboard/rh/employees");
       } else {
         const error = await response.json();
-        alert(error.error || "Erreur lors de la création");
+        showToast(error.error || "Erreur lors de la création", "error");
       }
     } catch (error) {
-      alert("Erreur lors de la création");
+      showToast("Erreur lors de la création", "error");
     }
   };
 

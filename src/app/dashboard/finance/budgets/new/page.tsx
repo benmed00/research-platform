@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { useApi } from "@/hooks/use-api";
 import { ArrowLeft, Plus, X } from "lucide-react";
 import Link from "next/link";
+import { useToast } from "@/components/ui/toast";
 
 const expenseCategories = [
   "SALAIRES",
@@ -59,6 +60,7 @@ interface Allocation {
 export default function NewBudgetPage() {
   const router = useRouter();
   const { handleApiCall } = useApi();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const currentYear = new Date().getFullYear();
   const [formData, setFormData] = useState({
@@ -97,8 +99,9 @@ export default function NewBudgetPage() {
 
     // Validate that allocations don't exceed total amount
     if (allocations.length > 0 && allocationsTotal > parseFloat(formData.totalAmount || "0")) {
-      alert(
-        `Le total des allocations (${allocationsTotal.toFixed(2)} MAD) dépasse le montant total du budget (${formData.totalAmount} MAD)`
+      showToast(
+        `Le total des allocations (${allocationsTotal.toFixed(2)} MAD) dépasse le montant total du budget (${formData.totalAmount} MAD)`,
+        "error"
       );
       setLoading(false);
       return;
