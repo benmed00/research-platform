@@ -46,7 +46,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+        
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -57,7 +57,18 @@ jobs:
         run: npm ci --prefer-offline --no-audit
       
       - name: Run tests
-        run: npm test --if-present
+        run: npm run test:run
+        continue-on-error: false
+      
+      - name: Generate coverage report
+        run: npm run test:coverage
+        continue-on-error: true
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/coverage-final.json
+          fail_ci_if_error: false
         continue-on-error: true
 
   build:

@@ -26,7 +26,11 @@
     "git:verify": "ts-node --project tsconfig.seed.json scripts/verify-git-setup.ts",
     "github:setup": "ts-node --project tsconfig.seed.json scripts/setup-github-repo.ts",
     "github:create": "powershell -ExecutionPolicy Bypass -File scripts/create-github-repo.ps1",
-    "add-pr-metadata": "ts-node --project tsconfig.seed.json scripts/add-pr-metadata.ts"
+    "add-pr-metadata": "ts-node --project tsconfig.seed.json scripts/add-pr-metadata.ts",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "prisma": {
     "seed": "ts-node --project tsconfig.seed.json prisma/seed.ts"
@@ -55,19 +59,27 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@testing-library/user-event": "^14.6.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/leaflet": "^1.9.8",
     "@types/node": "^20.14.0",
     "@types/papaparse": "^5.3.14",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^5.1.2",
+    "@vitest/coverage-v8": "^4.0.16",
+    "@vitest/ui": "^4.0.16",
     "autoprefixer": "^10.4.19",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0",
+    "jsdom": "^27.4.0",
     "postcss": "^8.4.38",
     "prisma": "^5.19.0",
     "tailwindcss": "^3.4.4",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "vitest": "^4.0.16"
   }
 }
