@@ -86,29 +86,40 @@ This document outlines the action plan for implementing improvements identified 
 
 #### 3. Structured Logging System (Issue #67)
 
-**Status**: Not Started  
+**Status**: ✅ **MOSTLY COMPLETED**  
 **Priority**: High  
 **Estimated Time**: 2-3 days
 
 **Tasks**:
 
-- [ ] Install Pino (or Winston)
-- [ ] Create `src/lib/logger.ts`
-- [ ] Configure log levels and formats
-- [ ] Replace all `console.error` calls (30+ locations)
-- [ ] Add structured JSON logging
-- [ ] Configure environment-based logging
-- [ ] Remove console.* in production
-- [ ] Document logging usage
+- [x] Install Pino (or Winston)
+- [x] Create `src/lib/logger.ts`
+- [x] Configure log levels and formats
+- [x] Replace `console.error` calls in key files (notifications, users, documents, preferences)
+- [x] Add structured JSON logging
+- [x] Configure environment-based logging
+- [ ] Replace remaining `console.*` calls (74 locations across 36 files - incremental)
+- [x] Document logging usage
 
 **Acceptance Criteria**:
 
-- No console.* in production code
-- Structured JSON logs
-- Log levels configured
-- All errors logged with context
+- ⏳ No console.* in production code (in progress - key files done)
+- ✅ Structured JSON logs
+- ✅ Log levels configured
+- ✅ All errors logged with context (in key files)
 
 **Dependencies**: None
+
+**Implementation Notes**:
+- Pino logger created at `src/lib/logger.ts`
+- Environment-based configuration (pretty logs in dev, JSON in production)
+- Helper functions for common patterns (apiError, authEvent, dbOperation, rateLimit)
+- Console calls replaced in:
+  - `src/lib/notifications.ts` (6 calls)
+  - `src/app/api/users/route.ts` (2 calls)
+  - `src/app/api/documents/upload/route.ts` (1 call)
+  - `src/app/api/notifications/preferences/route.ts` (2 calls)
+- Remaining: ~74 console calls across 36 API route files (can be replaced incrementally)
 
 ---
 

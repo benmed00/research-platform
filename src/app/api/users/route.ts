@@ -14,6 +14,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { withRateLimit, rateLimitConfigs } from "@/lib/rate-limit";
+import { loggerHelpers } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -69,7 +70,11 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(user, { status: 201 });
       } catch (error) {
-        console.error("Error creating user:", error);
+        loggerHelpers.apiError(error as Error, {
+          route: "/api/users",
+          method: "POST",
+          userId: session.user.id,
+        });
         return NextResponse.json(
           { error: "Erreur lors de la création" },
           { status: 500 }
@@ -101,7 +106,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(users);
   } catch (error) {
-    console.error("Error fetching users:", error);
+    loggerHelpers.apiError(error as Error, {
+      route: "/api/users",
+      method: "GET",
+    });
     return NextResponse.json(
       { error: "Erreur lors de la récupération" },
       { status: 500 }

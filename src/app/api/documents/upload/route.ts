@@ -15,6 +15,7 @@ import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { existsSync } from "fs";
 import { withRateLimit, rateLimitConfigs } from "@/lib/rate-limit";
+import { loggerHelpers } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   // Get session first for identifier
@@ -65,7 +66,11 @@ export async function POST(request: NextRequest) {
           mimeType: file.type,
         });
       } catch (error: any) {
-        console.error("Error uploading file:", error);
+        loggerHelpers.apiError(error as Error, {
+          route: "/api/documents/upload",
+          method: "POST",
+          userId: session.user.id,
+        });
         return NextResponse.json(
           { error: error.message || "Erreur lors de l'upload" },
           { status: 500 }

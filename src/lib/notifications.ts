@@ -9,6 +9,7 @@
  * @size 5.08 KB
  */
 import { prisma } from "@/lib/prisma";
+import { loggerHelpers } from "@/lib/logger";
 
 export interface CreateNotificationParams {
   userId: string;
@@ -43,7 +44,10 @@ export async function createNotification(params: CreateNotificationParams) {
       },
     });
   } catch (error) {
-    console.error("Error creating notification:", error);
+    loggerHelpers.apiError(error as Error, {
+      operation: "createNotification",
+      userId: params.userId,
+    });
     throw error;
   }
 }
@@ -71,7 +75,10 @@ export async function createNotificationsForUsers(
     );
     return notifications;
   } catch (error) {
-    console.error("Error creating notifications for users:", error);
+    loggerHelpers.apiError(error as Error, {
+      operation: "createNotificationsForUsers",
+      userCount: userIds.length,
+    });
     throw error;
   }
 }
@@ -103,7 +110,11 @@ export async function notifyNewMission(missionId: string, creatorId: string) {
       );
     }
   } catch (error) {
-    console.error("Error notifying new mission:", error);
+    loggerHelpers.apiError(error as Error, {
+      operation: "notifyNewMission",
+      missionId,
+      creatorId,
+    });
   }
 }
 
@@ -140,7 +151,10 @@ export async function notifyMissionCompleted(missionId: string, missionTitle: st
       });
     }
   } catch (error) {
-    console.error("Error notifying mission completed:", error);
+    loggerHelpers.apiError(error as Error, {
+      operation: "notifyMissionCompleted",
+      missionId,
+    });
   }
 }
 
@@ -168,7 +182,10 @@ export async function notifyMaintenanceDue(equipmentId: string, equipmentName: s
       );
     }
   } catch (error) {
-    console.error("Error notifying maintenance due:", error);
+    loggerHelpers.apiError(error as Error, {
+      operation: "notifyMaintenanceDue",
+      equipmentId,
+    });
   }
 }
 
@@ -204,7 +221,10 @@ export async function notifyNewSpecies(speciesId: string, scientificName: string
       );
     }
   } catch (error) {
-    console.error("Error notifying new species:", error);
+    loggerHelpers.apiError(error as Error, {
+      operation: "notifyNewSpecies",
+      speciesId,
+    });
   }
 }
 
