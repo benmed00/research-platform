@@ -1,14 +1,15 @@
 /**
  * @file logger.ts
- * @description Structured logging utility using Pino
+ * @description Structured logging utility using Pino with Sentry integration
  * @author 1
  * @created 2026-01-06
  * @updated 2026-01-06
  * @updates 1
- * @lines 80
- * @size 2.3 KB
+ * @lines 90
+ * @size 2.6 KB
  */
 import pino from "pino";
+import * as Sentry from "@sentry/nextjs";
 
 // Determine log level based on environment
 const logLevel = process.env.LOG_LEVEL || (process.env.NODE_ENV === "production" ? "info" : "debug");
@@ -86,9 +87,10 @@ export const log: Logger = {
 // Helper functions for common logging patterns
 export const loggerHelpers = {
   /**
-   * Log API errors with context
+   * Log API errors with context and send to Sentry
    */
   apiError: (error: Error, context: { route?: string; method?: string; userId?: string; [key: string]: any }) => {
+    // Log with Pino
     log.error(
       {
         err: {
@@ -100,6 +102,18 @@ export const loggerHelpers = {
       },
       "API Error"
     );
+
+    // Send to Sentry with context
+    if (process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN) {
+      Sentry.captureException(error, {
+        tags: {
+          route: context.route,
+          method: context.method,
+        },
+        user: context.userId ? { id: context.userId } : undefined,
+        extra: context,
+      });
+    }
   },
 
   /**

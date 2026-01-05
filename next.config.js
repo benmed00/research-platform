@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const { withSentryConfig } = require("@sentry/nextjs");
+
 const nextConfig = {
   reactStrictMode: true,
   images: {
@@ -15,5 +17,18 @@ const nextConfig = {
   output: 'standalone',
 }
 
-module.exports = nextConfig
+// Only wrap with Sentry if DSN is configured
+const sentryOptions = {
+  silent: true,
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  widenClientFileUpload: true,
+  hideSourceMaps: true,
+  disableLogger: true,
+  automaticVercelMonitors: true,
+};
+
+module.exports = process.env.SENTRY_DSN
+  ? withSentryConfig(nextConfig, sentryOptions)
+  : nextConfig;
 
