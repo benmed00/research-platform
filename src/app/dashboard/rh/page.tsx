@@ -17,9 +17,9 @@ import { Plus, Users, Calendar, DollarSign } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { ExportButtons } from "@/components/export/export-buttons";
 
-// Force dynamic rendering to avoid build-time database queries
+// HTTP caching for RH page - revalidate every 60 seconds
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 60;
 
 export default async function RHPage() {
   const [employees, activeLeaves, recentSalaries] = await Promise.all([
