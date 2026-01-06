@@ -12,6 +12,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
+import { StatCardEnhanced } from "@/components/ui/stat-card-enhanced";
 import {
   Users,
   DollarSign,
@@ -151,36 +152,36 @@ export default async function DashboardPage() {
       title: "Utilisateurs actifs",
       value: totalUsers,
       icon: Users,
-      color: "text-blue-600",
-      bgColor: "bg-blue-100",
+      gradient: "from-blue-500 to-cyan-500",
+      trend: { value: 12, direction: "up" as const, period: "vs mois dernier" },
     },
     {
       title: "Employés",
       value: totalEmployees,
       icon: Users,
-      color: "text-green-600",
-      bgColor: "bg-green-100",
+      gradient: "from-green-500 to-emerald-500",
+      trend: { value: 5, direction: "up" as const, period: "vs mois dernier" },
     },
     {
       title: "Équipements",
       value: totalEquipment,
       icon: Package,
-      color: "text-purple-600",
-      bgColor: "bg-purple-100",
+      gradient: "from-amber-500 to-orange-500",
+      trend: { value: 8, direction: "up" as const, period: "vs mois dernier" },
     },
     {
       title: "Missions",
       value: totalMissions,
       icon: MapPin,
-      color: "text-orange-600",
-      bgColor: "bg-orange-100",
+      gradient: "from-pink-500 to-purple-500",
+      trend: { value: 15, direction: "up" as const, period: "vs mois dernier" },
     },
     {
       title: "Espèces cataloguées",
       value: totalSpecies,
       icon: Database,
-      color: "text-indigo-600",
-      bgColor: "bg-indigo-100",
+      gradient: "from-green-500 to-teal-500",
+      trend: { value: 23, direction: "up" as const, period: "vs mois dernier" },
     },
     {
       title: "Budget annuel",
@@ -188,8 +189,7 @@ export default async function DashboardPage() {
         ? `${(Number(currentYearBudget.totalAmount) / 1000000).toFixed(1)}M MAD`
         : "N/A",
       icon: DollarSign,
-      color: "text-emerald-600",
-      bgColor: "bg-emerald-100",
+      gradient: "from-emerald-500 to-green-500",
     },
   ];
 
@@ -224,28 +224,16 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.title} className="p-6 hover:shadow-md transition-shadow duration-200" variant="elevated">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                    {stat.title}
-                  </p>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
-                    {stat.value}
-                  </p>
-                </div>
-                <div
-                  className={`${stat.bgColor} ${stat.color} p-3 rounded-xl flex-shrink-0 ml-4 shadow-sm`}
-                >
-                  <Icon className="w-6 h-6" />
-                </div>
-              </div>
-            </Card>
-          );
-        })}
+        {stats.map((stat) => (
+          <StatCardEnhanced
+            key={stat.title}
+            title={stat.title}
+            value={stat.value}
+            icon={stat.icon}
+            gradient={stat.gradient}
+            trend={stat.trend}
+          />
+        ))}
       </div>
 
       {/* Graphiques */}
