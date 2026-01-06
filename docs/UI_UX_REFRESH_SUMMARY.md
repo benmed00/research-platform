@@ -9,10 +9,9 @@ Complete UI/UX refresh to modernize the platform with enhanced visual design, im
 ## 📋 Key Documents
 
 1. **UI_UX_REFRESH_PLAN.md** - Complete design system and component proposals
-2. **UI_DESIGN_MOCKUPS.md** - Visual mockups and specifications  
+2. **UI_DESIGN_MOCKUPS.md** - Text-based mockups and specifications  
 3. **UX_IMPROVEMENTS_DETAILED.md** - 12 areas of UX improvements
 4. **UI_IMPLEMENTATION_ROADMAP.md** - Step-by-step implementation guide
-5. **UI_VISUAL_DESIGN_MOCKUP.svg** - SVG visual mockup
 
 ---
 
@@ -38,13 +37,15 @@ Complete UI/UX refresh to modernize the platform with enhanced visual design, im
 
 ---
 
-## 📊 Visual Mockup
+## 📊 Design Specifications
 
-See `UI_VISUAL_DESIGN_MOCKUP.svg` for visual representation of:
+See `UI_DESIGN_MOCKUPS.md` for detailed text-based mockups and specifications:
 - Enhanced dashboard with gradient stat cards
 - Modern chart designs
 - Improved layout and spacing
 - Better visual hierarchy
+
+**Note**: For actual visual mockups, we recommend using design tools like Figma or Adobe XD to create pixel-perfect designs based on the specifications provided.
 
 ---
 
