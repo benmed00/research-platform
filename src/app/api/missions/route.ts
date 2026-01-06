@@ -15,6 +15,8 @@ import { prisma } from "@/lib/prisma";
 import { notifyNewMission } from "@/lib/notifications";
 import { parsePagination, createPaginatedResponse } from "@/lib/pagination";
 import { loggerHelpers } from "@/lib/logger";
+import { missionSchema } from "@/lib/validations";
+import { validateRequest } from "@/lib/validation-helpers";
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,6 +26,13 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.json();
+    
+    // Validate request data
+    const validation = validateRequest(missionSchema, data, "/api/missions");
+    if (!validation.success) {
+      return validation.response;
+    }
+    
     const {
       title,
       description,
@@ -33,9 +42,10 @@ export async function POST(request: NextRequest) {
       latitude,
       longitude,
       objectives,
-      teamMembers,
-      equipmentIds,
-    } = data;
+      status,
+    } = validation.data;
+    
+    const { teamMembers, equipmentIds } = data; // These are arrays, not in schema
 
     const mission = await prisma.mission.create({
       data: {
@@ -44,6 +54,7 @@ export async function POST(request: NextRequest) {
         creatorId: session.user.id,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
+        status: status || "PLANNED",
         location,
         latitude: latitude ? parseFloat(latitude) : undefined,
         longitude: longitude ? parseFloat(longitude) : undefined,

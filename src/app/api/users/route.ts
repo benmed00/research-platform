@@ -16,6 +16,8 @@ import bcrypt from "bcryptjs";
 import { withRateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 import { loggerHelpers } from "@/lib/logger";
 import { parsePagination, createPaginatedResponse } from "@/lib/pagination";
+import { userSchema } from "@/lib/validations";
+import { validateRequest } from "@/lib/validation-helpers";
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -28,9 +30,15 @@ export async function POST(request: NextRequest) {
     { ...rateLimitConfigs.api, identifier: session.user.id },
     async () => {
       try {
-
     const data = await request.json();
-    const { firstName, lastName, email, password, role } = data;
+    
+    // Validate request data
+    const validation = validateRequest(userSchema, data, "/api/users");
+    if (!validation.success) {
+      return validation.response;
+    }
+    
+    const { firstName, lastName, email, password, role } = validation.data;
 
     // Vérifier si l'email existe déjà
     const existingUser = await prisma.user.findUnique({

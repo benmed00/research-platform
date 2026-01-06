@@ -12,6 +12,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { waterQualitySchema } from "@/lib/validations";
+import { validateRequest } from "@/lib/validation-helpers";
+import { loggerHelpers } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,6 +24,13 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.json();
+    
+    // Validate request data
+    const validation = validateRequest(waterQualitySchema, data, "/api/water-quality");
+    if (!validation.success) {
+      return validation.response;
+    }
+    
     const {
       type,
       location,
@@ -33,7 +43,7 @@ export async function POST(request: NextRequest) {
       turbidity,
       salinity,
       notes,
-    } = data;
+    } = validation.data;
 
     const waterQuality = await prisma.waterQuality.create({
       data: {
@@ -63,7 +73,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(waterQuality, { status: 201 });
   } catch (error: any) {
-    console.error("Error creating water quality data:", error);
+    const session = await getServerSession(authOptions);
+    loggerHelpers.apiError(error as Error, {
+      route: "/api/water-quality",
+      method: "POST",
+      userId: session?.user?.id,
+    });
     return NextResponse.json(
       { error: error.message || "Erreur lors de la création" },
       { status: 500 }

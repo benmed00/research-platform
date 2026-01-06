@@ -15,6 +15,8 @@ import { prisma } from "@/lib/prisma";
 import { notifyNewSpecies } from "@/lib/notifications";
 import { parsePagination, createPaginatedResponse } from "@/lib/pagination";
 import { loggerHelpers } from "@/lib/logger";
+import { speciesSchema } from "@/lib/validations";
+import { validateRequest } from "@/lib/validation-helpers";
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,6 +26,13 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.json();
+    
+    // Validate request data
+    const validation = validateRequest(speciesSchema, data, "/api/species");
+    if (!validation.success) {
+      return validation.response;
+    }
+    
     const {
       scientificName,
       commonName,
@@ -31,7 +40,7 @@ export async function POST(request: NextRequest) {
       iucnStatus,
       habitat,
       description,
-    } = data;
+    } = validation.data;
 
     const species = await prisma.species.create({
       data: {
@@ -55,11 +64,22 @@ export async function POST(request: NextRequest) {
     });
 
     // Create notification for scientists
-    await notifyNewSpecies(species.id, species.scientificName).catch(console.error);
+    await notifyNewSpecies(species.id, species.scientificName).catch((err) => {
+      loggerHelpers.apiError(err as Error, {
+        route: "/api/species",
+        method: "POST",
+        operation: "notifyNewSpecies",
+      });
+    });
 
     return NextResponse.json(species, { status: 201 });
   } catch (error: any) {
-    console.error("Error creating species:", error);
+    const session = await getServerSession(authOptions);
+    loggerHelpers.apiError(error as Error, {
+      route: "/api/species",
+      method: "POST",
+      userId: session?.user?.id,
+    });
     return NextResponse.json(
       { error: error.message || "Erreur lors de la création" },
       { status: 500 }

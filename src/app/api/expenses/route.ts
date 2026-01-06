@@ -12,6 +12,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { expenseSchema } from "@/lib/validations";
+import { validateRequest } from "@/lib/validation-helpers";
+import { loggerHelpers } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,16 +24,15 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.json();
-    const {
-      budgetId,
-      grantId,
-      projectId,
-      category,
-      amount,
-      description,
-      date,
-      invoiceId,
-    } = data;
+    
+    // Validate core fields (expenseSchema validates description, amount, category, date, projectId)
+    const validation = validateRequest(expenseSchema, data, "/api/expenses");
+    if (!validation.success) {
+      return validation.response;
+    }
+    
+    const { description, amount, category, date, projectId } = validation.data;
+    const { budgetId, grantId, invoiceId } = data; // Additional fields not in schema
 
     const expense = await prisma.expense.create({
       data: {
@@ -57,7 +59,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(expense, { status: 201 });
   } catch (error: any) {
-    console.error("Error creating expense:", error);
+    const session = await getServerSession(authOptions);
+    loggerHelpers.apiError(error as Error, {
+      route: "/api/expenses",
+      method: "POST",
+      userId: session?.user?.id,
+    });
     return NextResponse.json(
       { error: error.message || "Erreur lors de la création" },
       { status: 500 }
@@ -100,7 +107,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error fetching expenses:", error);
+    loggerHelpers.apiError(error as Error, {
+      route: "/api/expenses",
+      method: "GET",
+    });
     return NextResponse.json(
       { error: "Erreur lors de la récupération" },
       { status: 500 }

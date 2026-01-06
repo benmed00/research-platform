@@ -12,6 +12,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { budgetSchema } from "@/lib/validations";
+import { validateRequest } from "@/lib/validation-helpers";
+import { loggerHelpers } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +24,15 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.json();
-    const { year, totalAmount, description, allocations } = data;
+    
+    // Validate request data
+    const validation = validateRequest(budgetSchema, data, "/api/budgets");
+    if (!validation.success) {
+      return validation.response;
+    }
+    
+    const { year, totalAmount } = validation.data;
+    const { description, allocations } = data; // Allocations not in schema
 
     const budget = await prisma.budget.create({
       data: {
@@ -55,7 +66,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(budget, { status: 201 });
   } catch (error: any) {
-    console.error("Error creating budget:", error);
+    const session = await getServerSession(authOptions);
+    loggerHelpers.apiError(error as Error, {
+      route: "/api/budgets",
+      method: "POST",
+      userId: session?.user?.id,
+    });
     return NextResponse.json(
       { error: error.message || "Erreur lors de la création" },
       { status: 500 }
@@ -90,7 +106,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error fetching budgets:", error);
+    loggerHelpers.apiError(error as Error, {
+      route: "/api/budgets",
+      method: "GET",
+    });
     return NextResponse.json(
       { error: "Erreur lors de la récupération" },
       { status: 500 }

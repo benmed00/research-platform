@@ -14,6 +14,8 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { parsePagination, createPaginatedResponse } from "@/lib/pagination";
 import { loggerHelpers } from "@/lib/logger";
+import { equipmentSchema } from "@/lib/validations";
+import { validateRequest } from "@/lib/validation-helpers";
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,6 +25,13 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.json();
+    
+    // Validate request data
+    const validation = validateRequest(equipmentSchema, data, "/api/equipment");
+    if (!validation.success) {
+      return validation.response;
+    }
+    
     const {
       name,
       category,
@@ -32,7 +41,8 @@ export async function POST(request: NextRequest) {
       lifespan,
       location,
       description,
-    } = data;
+      status,
+    } = validation.data;
 
     const equipment = await prisma.equipment.create({
       data: {
@@ -44,6 +54,7 @@ export async function POST(request: NextRequest) {
         lifespan: lifespan ? parseInt(lifespan) : undefined,
         location: location || undefined,
         description: description || undefined,
+        status: status || "AVAILABLE",
       },
     });
 

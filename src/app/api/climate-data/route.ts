@@ -12,6 +12,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { climateDataSchema } from "@/lib/validations";
+import { validateRequest } from "@/lib/validation-helpers";
+import { loggerHelpers } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,6 +24,13 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.json();
+    
+    // Validate request data
+    const validation = validateRequest(climateDataSchema, data, "/api/climate-data");
+    if (!validation.success) {
+      return validation.response;
+    }
+    
     const {
       stationId,
       location,
@@ -34,7 +44,7 @@ export async function POST(request: NextRequest) {
       windDirection,
       precipitation,
       notes,
-    } = data;
+    } = validation.data;
 
     const climateData = await prisma.climateData.create({
       data: {
@@ -65,7 +75,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(climateData, { status: 201 });
   } catch (error: any) {
-    console.error("Error creating climate data:", error);
+    const session = await getServerSession(authOptions);
+    loggerHelpers.apiError(error as Error, {
+      route: "/api/climate-data",
+      method: "POST",
+      userId: session?.user?.id,
+    });
     return NextResponse.json(
       { error: error.message || "Erreur lors de la création" },
       { status: 500 }

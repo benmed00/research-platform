@@ -12,6 +12,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { employeeSchema } from "@/lib/validations";
+import { validateRequest } from "@/lib/validation-helpers";
+import { loggerHelpers } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,6 +24,13 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.json();
+    
+    // Validate request data
+    const validation = validateRequest(employeeSchema, data, "/api/employees");
+    if (!validation.success) {
+      return validation.response;
+    }
+    
     const {
       userId,
       employeeNumber,
@@ -29,7 +39,7 @@ export async function POST(request: NextRequest) {
       contractStart,
       contractEnd,
       baseSalary,
-    } = data;
+    } = validation.data;
 
     const employee = await prisma.employee.create({
       data: {
@@ -55,7 +65,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(employee, { status: 201 });
   } catch (error: any) {
-    console.error("Error creating employee:", error);
+    const session = await getServerSession(authOptions);
+    loggerHelpers.apiError(error as Error, {
+      route: "/api/employees",
+      method: "POST",
+      userId: session?.user?.id,
+    });
     return NextResponse.json(
       { error: error.message || "Erreur lors de la création" },
       { status: 500 }
@@ -91,7 +106,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error fetching employees:", error);
+    loggerHelpers.apiError(error as Error, {
+      route: "/api/employees",
+      method: "GET",
+    });
     return NextResponse.json(
       { error: "Erreur lors de la récupération" },
       { status: 500 }

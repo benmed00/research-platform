@@ -12,6 +12,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { airQualitySchema } from "@/lib/validations";
+import { validateRequest } from "@/lib/validation-helpers";
+import { loggerHelpers } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,6 +24,13 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.json();
+    
+    // Validate request data
+    const validation = validateRequest(airQualitySchema, data, "/api/air-quality");
+    if (!validation.success) {
+      return validation.response;
+    }
+    
     const {
       location,
       latitude,
@@ -32,7 +42,7 @@ export async function POST(request: NextRequest) {
       o3,
       co,
       notes,
-    } = data;
+    } = validation.data;
 
     const airQuality = await prisma.airQuality.create({
       data: {
@@ -61,7 +71,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(airQuality, { status: 201 });
   } catch (error: any) {
-    console.error("Error creating air quality data:", error);
+    const session = await getServerSession(authOptions);
+    loggerHelpers.apiError(error as Error, {
+      route: "/api/air-quality",
+      method: "POST",
+      userId: session?.user?.id,
+    });
     return NextResponse.json(
       { error: error.message || "Erreur lors de la création" },
       { status: 500 }
