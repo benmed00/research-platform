@@ -9,7 +9,7 @@ const startTime = Date.now();
 
 console.log('🚀 Starting build...\n');
 
-const buildProcess = spawn('next', ['build'], {
+const buildProcess = spawn('npx', ['next', 'build'], {
   stdio: 'inherit',
   shell: true,
   cwd: process.cwd(),
