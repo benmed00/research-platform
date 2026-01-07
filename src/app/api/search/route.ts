@@ -14,6 +14,8 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { withRateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   return withRateLimit(
     request,

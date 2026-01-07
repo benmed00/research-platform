@@ -15,6 +15,8 @@ import { prisma } from "@/lib/prisma";
 
 // Note: Using HTTP cache headers instead of revalidate because routes require authentication
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
