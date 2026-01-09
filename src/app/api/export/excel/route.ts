@@ -13,9 +13,14 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import * as XLSX from "xlsx";
+import { withRateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
-  try {
+  return withRateLimit(
+    request,
+    { ...rateLimitConfigs.api, identifier: "export-excel" },
+    async () => {
+      try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
@@ -179,19 +184,22 @@ export async function POST(request: NextRequest) {
     XLSX.utils.book_append_sheet(workbook, worksheet, title);
     const excelBuffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
 
-    return new NextResponse(excelBuffer, {
-      headers: {
-        "Content-Type":
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition": `attachment; filename="${title}.xlsx"`,
-      },
-    });
-  } catch (error: any) {
-    console.error("Error generating Excel:", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur lors de la génération du fichier Excel" },
-      { status: 500 }
-    );
-  }
+        return new NextResponse(excelBuffer, {
+          headers: {
+            "Content-Type":
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "Content-Disposition": `attachment; filename="${title}.xlsx"`,
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+          },
+        });
+      } catch (error: any) {
+        console.error("Error generating Excel:", error);
+        return NextResponse.json(
+          { error: error.message || "Erreur lors de la génération du fichier Excel" },
+          { status: 500 }
+        );
+      }
+    }
+  );
 }
 

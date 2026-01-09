@@ -125,8 +125,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type");
     const missionId = searchParams.get("missionId");
-    const limit = parseInt(searchParams.get("limit") || "100");
-    const offset = parseInt(searchParams.get("offset") || "0");
+    const { page, limit, skip, take } = parsePagination(request);
 
     const where: any = {};
     if (type) {
@@ -139,8 +138,8 @@ export async function GET(request: NextRequest) {
     const [documents, total] = await Promise.all([
       prisma.document.findMany({
         where,
-        take: limit,
-        skip: offset,
+        take,
+        skip,
         include: {
           author: {
             select: {
@@ -163,12 +162,7 @@ export async function GET(request: NextRequest) {
 
     // Cache for 5 minutes
     return NextResponse.json(
-      {
-        data: documents,
-        total,
-        limit,
-        offset,
-      },
+      createPaginatedResponse(documents, total, page, limit),
       {
         headers: {
           'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
