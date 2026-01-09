@@ -21,9 +21,9 @@ const waterTypeLabels: Record<string, string> = {
   BARRAGE: "Barrage",
 };
 
-// Force dynamic rendering to avoid build-time database queries
+// HTTP caching for environment page - revalidate every 60 seconds
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 60;
 
 export default async function EnvironmentPage() {
   const [waterQuality, airQuality, climateData, sensorData, counts] = await Promise.all([

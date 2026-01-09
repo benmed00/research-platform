@@ -12,6 +12,14 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import {
+  isAccountLocked,
+  getLockoutExpiration,
+  defaultPasswordPolicy,
+  isPasswordExpired,
+  daysUntilPasswordExpires,
+} from "@/lib/password-policy";
+import { isTwoFactorEnabled, verifyTwoFactorToken, verifyBackupCode, removeBackupCode, parseBackupCodesFromStorage } from "@/lib/two-factor";
 
 const prisma = new PrismaClient();
 
@@ -36,16 +44,114 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // Check if account is locked
+        if (isAccountLocked(user.accountLockedUntil)) {
+          await prisma.loginLog.create({
+            data: {
+              userId: user.id,
+              success: false,
+            },
+          });
+          throw new Error("Compte verrouillé. Veuillez réessayer plus tard.");
+        }
+
+        // Check password expiration
+        if (isPasswordExpired(user.passwordChangedAt, defaultPasswordPolicy.maxAge)) {
+          // Password expired - user needs to change it
+          // We'll allow login but flag it in the session
+        }
+
         const isPasswordValid = await bcrypt.compare(
           credentials.password,
           user.password
         );
 
         if (!isPasswordValid) {
-          return null;
+          // Increment failed login attempts
+          const failedAttempts = (user.failedLoginAttempts || 0) + 1;
+          const shouldLockAccount = failedAttempts >= defaultPasswordPolicy.lockoutAttempts;
+
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              failedLoginAttempts: failedAttempts,
+              accountLockedUntil: shouldLockAccount
+                ? getLockoutExpiration(defaultPasswordPolicy.lockoutDuration)
+                : user.accountLockedUntil,
+            },
+          });
+
+          await prisma.loginLog.create({
+            data: {
+              userId: user.id,
+              success: false,
+            },
+          });
+
+          if (shouldLockAccount) {
+            throw new Error(
+              `Trop de tentatives échouées. Compte verrouillé pendant ${defaultPasswordPolicy.lockoutDuration} minutes.`
+            );
+          }
+
+          throw new Error(
+            `Identifiants incorrects. ${defaultPasswordPolicy.lockoutAttempts - failedAttempts} tentatives restantes.`
+          );
         }
 
-        // Log login attempt
+        // Reset failed attempts on successful login
+        if (user.failedLoginAttempts > 0) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              failedLoginAttempts: 0,
+              accountLockedUntil: null,
+            },
+          });
+        }
+
+        // Check if 2FA is required
+        const requires2FA = isTwoFactorEnabled(user.twoFactorEnabled, user.twoFactorSecret);
+        const twoFactorToken = (credentials as any).twoFactorToken;
+        const backupCode = (credentials as any).backupCode;
+
+        if (requires2FA) {
+          if (!twoFactorToken && !backupCode) {
+            // Return special indicator that 2FA is required
+            throw new Error("2FA_REQUIRED");
+          }
+
+          let twoFactorValid = false;
+
+          if (twoFactorToken && user.twoFactorSecret) {
+            twoFactorValid = verifyTwoFactorToken(twoFactorToken, user.twoFactorSecret);
+          } else if (backupCode && user.twoFactorBackupCodes) {
+            const backupCodes = parseBackupCodesFromStorage(user.twoFactorBackupCodes);
+            if (verifyBackupCode(backupCode, backupCodes)) {
+              twoFactorValid = true;
+              // Remove used backup code
+              const updatedCodes = removeBackupCode(backupCode, backupCodes);
+              await prisma.user.update({
+                where: { id: user.id },
+                data: {
+                  twoFactorBackupCodes: JSON.stringify(updatedCodes),
+                },
+              });
+            }
+          }
+
+          if (!twoFactorValid) {
+            await prisma.loginLog.create({
+              data: {
+                userId: user.id,
+                success: false,
+              },
+            });
+            throw new Error("Code 2FA invalide");
+          }
+        }
+
+        // Log successful login
         await prisma.loginLog.create({
           data: {
             userId: user.id,
@@ -58,6 +164,8 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: `${user.firstName} ${user.lastName}`,
           role: user.role,
+          passwordExpired: isPasswordExpired(user.passwordChangedAt, defaultPasswordPolicy.maxAge),
+          daysUntilExpiration: daysUntilPasswordExpires(user.passwordChangedAt, defaultPasswordPolicy.maxAge),
         };
       },
     }),
@@ -67,6 +175,8 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = (user as any).role;
+        token.passwordExpired = (user as any).passwordExpired;
+        token.daysUntilExpiration = (user as any).daysUntilExpiration;
       }
       return token;
     },
@@ -74,6 +184,8 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
+        (session.user as any).passwordExpired = token.passwordExpired;
+        (session.user as any).daysUntilExpiration = token.daysUntilExpiration;
       }
       return session;
     },

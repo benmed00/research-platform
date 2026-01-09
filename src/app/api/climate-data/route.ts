@@ -15,6 +15,7 @@ import { prisma } from "@/lib/prisma";
 import { climateDataSchema } from "@/lib/validations";
 import { validateRequest } from "@/lib/validation-helpers";
 import { loggerHelpers } from "@/lib/logger";
+import { parsePagination, createPaginatedResponse } from "@/lib/pagination";
 
 export async function POST(request: NextRequest) {
   try {
@@ -97,8 +98,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const stationId = searchParams.get("stationId");
-    const limit = parseInt(searchParams.get("limit") || "100");
-    const offset = parseInt(searchParams.get("offset") || "0");
+    const { page, limit, skip, take } = parsePagination(request);
 
     const where: any = {};
     if (stationId) {
@@ -108,24 +108,22 @@ export async function GET(request: NextRequest) {
     const [climateData, total] = await Promise.all([
       prisma.climateData.findMany({
         where,
-        take: limit,
-        skip: offset,
+        take,
+        skip,
         orderBy: { date: "desc" },
       }),
       prisma.climateData.count({ where }),
     ]);
 
     // Cache for 5 minutes
-    return NextResponse.json({
-      data: climateData,
-      total,
-      limit,
-      offset,
-    }, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
-      },
-    });
+    return NextResponse.json(
+      createPaginatedResponse(climateData, total, page, limit),
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        },
+      }
+    );
   } catch (error) {
     console.error("Error fetching climate data:", error);
     return NextResponse.json(

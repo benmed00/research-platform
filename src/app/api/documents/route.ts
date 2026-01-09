@@ -17,8 +17,13 @@ import { join } from "path";
 import { existsSync } from "fs";
 import { documentSchema } from "@/lib/validations";
 import { canAccessResource, isAdminRole } from "@/lib/permissions";
+import { withRateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
+  return withRateLimit(
+    request,
+    { ...rateLimitConfigs.upload, identifier: "document-upload" },
+    async () => {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -95,22 +100,27 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(document, { status: 201 });
-  } catch (error: any) {
-    console.error("Error creating document:", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur lors de la création" },
-      { status: 500 }
-    );
-  }
+      return NextResponse.json(document, { status: 201 });
+    } catch (error: any) {
+      console.error("Error creating document:", error);
+      return NextResponse.json(
+        { error: error.message || "Erreur lors de la création" },
+        { status: 500 }
+      );
+    }
+  });
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
+  return withRateLimit(
+    request,
+    rateLimitConfigs.api,
+    async () => {
+      try {
+        const session = await getServerSession(authOptions);
+        if (!session) {
+          return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+        }
 
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type");
@@ -163,15 +173,16 @@ export async function GET(request: NextRequest) {
         headers: {
           'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
         },
-      }
-    );
-  } catch (error) {
-    console.error("Error fetching documents:", error);
-    return NextResponse.json(
-      { error: "Erreur lors de la récupération" },
-      { status: 500 }
-    );
-  }
+        }
+      );
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+      return NextResponse.json(
+        { error: "Erreur lors de la récupération" },
+        { status: 500 }
+      );
+    }
+  });
 }
 
 export async function PUT(request: NextRequest) {

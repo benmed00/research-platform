@@ -15,6 +15,7 @@ import { prisma } from "@/lib/prisma";
 import { airQualitySchema } from "@/lib/validations";
 import { validateRequest } from "@/lib/validation-helpers";
 import { loggerHelpers } from "@/lib/logger";
+import { parsePagination, createPaginatedResponse } from "@/lib/pagination";
 
 export async function POST(request: NextRequest) {
   try {
@@ -91,25 +92,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get("limit") || "100");
-    const offset = parseInt(searchParams.get("offset") || "0");
+    const { page, limit, skip, take } = parsePagination(request);
 
     const [airQuality, total] = await Promise.all([
       prisma.airQuality.findMany({
-        take: limit,
-        skip: offset,
+        take,
+        skip,
         orderBy: { date: "desc" },
       }),
       prisma.airQuality.count(),
     ]);
 
-    return NextResponse.json({
-      data: airQuality,
-      total,
-      limit,
-      offset,
-    });
+    return NextResponse.json(
+      createPaginatedResponse(airQuality, total, page, limit)
+    );
   } catch (error) {
     console.error("Error fetching air quality data:", error);
     return NextResponse.json(

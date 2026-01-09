@@ -12,37 +12,62 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { withRateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 
 export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
+  return withRateLimit(
+    request,
+    { ...rateLimitConfigs.api, identifier: "search" },
+    async () => {
+      try {
+        const session = await getServerSession(authOptions);
+        if (!session) {
+          return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+        }
 
-    const { searchParams } = new URL(request.url);
-    const query = searchParams.get("q") || "";
-    const limit = parseInt(searchParams.get("limit") || "10");
+        const { searchParams } = new URL(request.url);
+        const query = searchParams.get("q") || "";
+        const limit = parseInt(searchParams.get("limit") || "10");
+        const entityTypes = searchParams.get("types")?.split(",") || [];
 
-    if (!query || query.trim().length < 2) {
-      return NextResponse.json({
-        results: {
-          species: [],
-          missions: [],
-          equipment: [],
-          employees: [],
-          documents: [],
-          publications: [],
-        },
-        total: 0,
-      });
-    }
+        if (!query || query.trim().length < 2) {
+          return NextResponse.json({
+            results: {
+              species: [],
+              missions: [],
+              equipment: [],
+              employees: [],
+              documents: [],
+              publications: [],
+              users: [],
+              expenses: [],
+              budgets: [],
+              waterQuality: [],
+              airQuality: [],
+              climateData: [],
+            },
+            total: 0,
+          });
+        }
 
-    const searchQuery = query.trim();
-    const searchPattern = `%${searchQuery}%`;
+        const searchQuery = query.trim();
+        const shouldSearch = (type: string) => entityTypes.length === 0 || entityTypes.includes(type);
 
-    // Search in parallel
-    const [species, missions, equipment, employees, documents, publications] = await Promise.all([
+        // Search in parallel - enhanced with more entities
+        const [
+          species,
+          missions,
+          equipment,
+          employees,
+          documents,
+          publications,
+          users,
+          expenses,
+          budgets,
+          waterQuality,
+          airQuality,
+          climateData,
+        ] = await Promise.all([
       // Species
       prisma.species.findMany({
         where: {
@@ -155,49 +180,197 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: "desc" },
       }),
 
-      // Publications
-      prisma.publication.findMany({
-        where: {
-          title: { contains: searchQuery, mode: "insensitive" },
-        },
-        select: {
-          id: true,
-          title: true,
-          year: true,
-          type: true,
-        },
-        take: limit,
-        orderBy: { year: "desc" },
-      }),
-    ]);
+          // Publications
+          shouldSearch("publications")
+            ? prisma.publication.findMany({
+                where: {
+                  OR: [
+                    { title: { contains: searchQuery, mode: "insensitive" } },
+                    { type: { contains: searchQuery, mode: "insensitive" } },
+                  ],
+                },
+                select: {
+                  id: true,
+                  title: true,
+                  year: true,
+                  type: true,
+                  isPublished: true,
+                },
+                take: limit,
+                orderBy: { year: "desc" },
+              })
+            : [],
 
-    const total = species.length + missions.length + equipment.length + employees.length + documents.length + publications.length;
+          // Users
+          shouldSearch("users")
+            ? prisma.user.findMany({
+                where: {
+                  OR: [
+                    { firstName: { contains: searchQuery, mode: "insensitive" } },
+                    { lastName: { contains: searchQuery, mode: "insensitive" } },
+                    { email: { contains: searchQuery, mode: "insensitive" } },
+                  ],
+                },
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  role: true,
+                  isActive: true,
+                },
+                take: limit,
+                orderBy: { createdAt: "desc" },
+              })
+            : [],
 
-    return NextResponse.json(
-      {
-        results: {
-          species,
-          missions,
-          equipment,
-          employees,
-          documents,
-          publications,
-        },
-        total,
-        query: searchQuery,
-      },
-      {
-        headers: {
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
-        },
+          // Expenses
+          shouldSearch("expenses")
+            ? prisma.expense.findMany({
+                where: {
+                  OR: [
+                    { description: { contains: searchQuery, mode: "insensitive" } },
+                    { category: { contains: searchQuery, mode: "insensitive" } },
+                  ],
+                },
+                select: {
+                  id: true,
+                  category: true,
+                  amount: true,
+                  description: true,
+                  date: true,
+                },
+                take: limit,
+                orderBy: { date: "desc" },
+              })
+            : [],
+
+          // Budgets
+          shouldSearch("budgets")
+            ? prisma.budget.findMany({
+                where: {
+                  OR: [
+                    { description: { contains: searchQuery, mode: "insensitive" as const } },
+                    ...(isNaN(parseInt(searchQuery)) ? [] : [{ year: parseInt(searchQuery) }]),
+                  ],
+                },
+                select: {
+                  id: true,
+                  year: true,
+                  totalAmount: true,
+                  description: true,
+                },
+                take: limit,
+                orderBy: { year: "desc" },
+              })
+            : [],
+
+          // Water Quality
+          shouldSearch("waterQuality")
+            ? prisma.waterQuality.findMany({
+                where: {
+                  location: { contains: searchQuery, mode: "insensitive" as const },
+                },
+                select: {
+                  id: true,
+                  type: true,
+                  location: true,
+                  date: true,
+                  ph: true,
+                  temperature: true,
+                },
+                take: limit,
+                orderBy: { date: "desc" },
+              })
+            : [],
+
+          // Air Quality
+          shouldSearch("airQuality")
+            ? prisma.airQuality.findMany({
+                where: {
+                  location: { contains: searchQuery, mode: "insensitive" },
+                },
+                select: {
+                  id: true,
+                  location: true,
+                  date: true,
+                  pm25: true,
+                  pm10: true,
+                },
+                take: limit,
+                orderBy: { date: "desc" },
+              })
+            : [],
+
+          // Climate Data
+          shouldSearch("climateData")
+            ? prisma.climateData.findMany({
+                where: {
+                  OR: [
+                    { location: { contains: searchQuery, mode: "insensitive" } },
+                    { stationId: { contains: searchQuery, mode: "insensitive" } },
+                  ],
+                },
+                select: {
+                  id: true,
+                  stationId: true,
+                  location: true,
+                  date: true,
+                  temperature: true,
+                },
+                take: limit,
+                orderBy: { date: "desc" },
+              })
+            : [],
+        ]);
+
+        const total =
+          species.length +
+          missions.length +
+          equipment.length +
+          employees.length +
+          documents.length +
+          publications.length +
+          users.length +
+          expenses.length +
+          budgets.length +
+          waterQuality.length +
+          airQuality.length +
+          climateData.length;
+
+        return NextResponse.json(
+          {
+            results: {
+              species,
+              missions,
+              equipment,
+              employees,
+              documents,
+              publications,
+              users,
+              expenses,
+              budgets,
+              waterQuality,
+              airQuality,
+              climateData,
+            },
+            total,
+            query: searchQuery,
+          },
+          {
+            headers: {
+              "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
+            },
+          }
+        );
+      } catch (error: any) {
+        console.error("Error in global search:", error);
+        return NextResponse.json(
+          { error: "Erreur lors de la recherche" },
+          { status: 500 }
+        );
       }
-    );
-  } catch (error: any) {
-    console.error("Error in global search:", error);
-    return NextResponse.json(
-      { error: "Erreur lors de la recherche" },
-      { status: 500 }
-    );
-  }
+    }
+  );
 }
 
