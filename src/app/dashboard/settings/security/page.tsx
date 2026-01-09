@@ -111,7 +111,7 @@ export default function SecuritySettingsPage() {
   };
 
   const handleDisable2FA = async () => {
-    if (!confirm("Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ?")) {
+    if (!confirm("Êtes-vous sûr de vouloir désactiver l&apos;authentification à deux facteurs ?")) {
       return;
     }
 
@@ -173,7 +173,7 @@ export default function SecuritySettingsPage() {
                       2FA activée
                     </p>
                     <p className="text-sm text-green-700 dark:text-green-300">
-                      Votre compte est protégé par l'authentification à deux facteurs
+                      Votre compte est protégé par l&apos;authentification à deux facteurs
                     </p>
                   </div>
                 </div>
@@ -189,9 +189,10 @@ export default function SecuritySettingsPage() {
             ) : twoFactorSetup ? (
               <div className="space-y-4">
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  <p className="mb-2">1. Scannez ce QR code avec votre application d'authentification (Google Authenticator, Authy, etc.)</p>
+                  <p className="mb-2">1. Scannez ce QR code avec votre application d&apos;authentification (Google Authenticator, Authy, etc.)</p>
                   <div className="flex justify-center p-4 bg-white dark:bg-gray-800 rounded-lg border">
                     {twoFactorSetup.qrCode && (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={twoFactorSetup.qrCode}
                         alt="QR Code 2FA"
@@ -257,7 +258,7 @@ export default function SecuritySettingsPage() {
             ) : (
               <div className="space-y-4">
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  L'authentification à deux facteurs ajoute une couche de sécurité supplémentaire en demandant un code unique en plus de votre mot de passe.
+                  L&apos;authentification à deux facteurs ajoute une couche de sécurité supplémentaire en demandant un code unique en plus de votre mot de passe.
                 </p>
                 <Button
                   onClick={handleSetup2FA}

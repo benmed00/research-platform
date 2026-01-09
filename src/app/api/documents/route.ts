@@ -18,6 +18,7 @@ import { existsSync } from "fs";
 import { documentSchema } from "@/lib/validations";
 import { canAccessResource, isAdminRole } from "@/lib/permissions";
 import { withRateLimit, rateLimitConfigs } from "@/lib/rate-limit";
+import { parsePagination, createPaginatedResponse } from "@/lib/pagination";
 
 export async function POST(request: NextRequest) {
   return withRateLimit(
