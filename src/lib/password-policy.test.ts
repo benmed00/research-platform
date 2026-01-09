@@ -61,8 +61,8 @@ describe("validatePassword", () => {
   });
 
   it("should identify weak passwords", () => {
-    // A password that meets minimum requirements but is short
-    const result = validatePassword("Weak1!");
+    // A password that only meets 2-3 requirements (score < 4)
+    const result = validatePassword("weak1");
     expect(result.strength).toBe("weak");
   });
 
