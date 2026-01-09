@@ -14,7 +14,7 @@ import { memo, MemoExoticComponent } from "react";
 import { useSession } from "next-auth/react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
-import { GlobalSearch } from "@/components/search/global-search";
+import { GlobalSearch } from "@/components/global-search";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 
 const roleLabels: Record<string, string> = {
