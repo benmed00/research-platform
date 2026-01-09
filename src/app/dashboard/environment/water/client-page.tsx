@@ -181,8 +181,6 @@ export default function WaterQualityPageClient() {
               currentPage={currentPage}
               totalPages={Math.ceil(totalItems / pageSize)}
               onPageChange={setCurrentPage}
-              pageSize={pageSize}
-              totalItems={totalItems}
             />
           </div>
         )}
