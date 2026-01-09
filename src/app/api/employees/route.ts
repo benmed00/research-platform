@@ -15,6 +15,7 @@ import { prisma } from "@/lib/prisma";
 import { employeeSchema } from "@/lib/validations";
 import { validateRequest } from "@/lib/validation-helpers";
 import { loggerHelpers } from "@/lib/logger";
+import { parsePagination, createPaginatedResponse } from "@/lib/pagination";
 
 export async function POST(request: NextRequest) {
   try {
@@ -85,26 +86,36 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const employees = await prisma.employee.findMany({
-      include: {
-        user: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
-            role: true,
+    const { page, limit, skip, take } = parsePagination(request);
+
+    const [employees, total] = await Promise.all([
+      prisma.employee.findMany({
+        include: {
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+              role: true,
+            },
           },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+        orderBy: { createdAt: "desc" },
+        take,
+        skip,
+      }),
+      prisma.employee.count(),
+    ]);
 
     // Cache for 5 minutes
-    return NextResponse.json(employees, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
-      },
-    });
+    return NextResponse.json(
+      createPaginatedResponse(employees, total, page, limit),
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        },
+      }
+    );
   } catch (error) {
     loggerHelpers.apiError(error as Error, {
       route: "/api/employees",

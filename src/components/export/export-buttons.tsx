@@ -11,9 +11,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { FileSpreadsheet, FileText, Download } from "lucide-react";
+import { FileSpreadsheet, FileText, FileDown } from "lucide-react";
 import { useState } from "react";
-import { exportToExcel, exportToPDF, downloadBlob, getExportFilename, ExportType } from "@/lib/export-utils";
+import { exportToExcel, exportToPDF, exportToCSV, downloadBlob, getExportFilename, ExportType } from "@/lib/export-utils";
 import { useNotifications } from "@/components/notifications/notification-provider";
 
 interface ExportButtonsProps {
@@ -33,6 +33,7 @@ export function ExportButtons({
 }: ExportButtonsProps) {
   const [exportingExcel, setExportingExcel] = useState(false);
   const [exportingPDF, setExportingPDF] = useState(false);
+  const [exportingCSV, setExportingCSV] = useState(false);
   const { success, error: notifyError } = useNotifications();
 
   const handleExportExcel = async () => {
@@ -65,13 +66,28 @@ export function ExportButtons({
     }
   };
 
+  const handleExportCSV = async () => {
+    try {
+      setExportingCSV(true);
+      const blob = await exportToCSV(type, filters);
+      const filename = getExportFilename(type, "csv");
+      downloadBlob(blob, filename);
+      success(`Export CSV réussi : ${filename}`);
+    } catch (err: any) {
+      console.error("Error exporting to CSV:", err);
+      notifyError(err.message || "Erreur lors de l'export CSV");
+    } finally {
+      setExportingCSV(false);
+    }
+  };
+
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <Button
         variant="outline"
         size={showLabels ? "default" : "icon"}
         onClick={handleExportExcel}
-        disabled={exportingExcel || exportingPDF}
+        disabled={exportingExcel || exportingPDF || exportingCSV}
         title="Exporter en Excel"
       >
         <FileSpreadsheet className="w-4 h-4" />
@@ -81,11 +97,21 @@ export function ExportButtons({
         variant="outline"
         size={showLabels ? "default" : "icon"}
         onClick={handleExportPDF}
-        disabled={exportingExcel || exportingPDF}
+        disabled={exportingExcel || exportingPDF || exportingCSV}
         title="Exporter en PDF"
       >
         <FileText className="w-4 h-4" />
         {showLabels && <span className="ml-2">PDF</span>}
+      </Button>
+      <Button
+        variant="outline"
+        size={showLabels ? "default" : "icon"}
+        onClick={handleExportCSV}
+        disabled={exportingExcel || exportingPDF || exportingCSV}
+        title="Exporter en CSV"
+      >
+        <FileDown className="w-4 h-4" />
+        {showLabels && <span className="ml-2">CSV</span>}
       </Button>
     </div>
   );

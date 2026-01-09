@@ -13,9 +13,14 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import jsPDF from "jspdf";
+import { withRateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
-  try {
+  return withRateLimit(
+    request,
+    { ...rateLimitConfigs.api, identifier: "export-pdf" },
+    async () => {
+      try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
@@ -250,18 +255,21 @@ export async function POST(request: NextRequest) {
 
     const pdfBuffer = Buffer.from(doc.output("arraybuffer"));
 
-    return new NextResponse(pdfBuffer, {
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${title.replace(/\s/g, "_")}.pdf"`,
-      },
-    });
-  } catch (error: any) {
-    console.error("Error generating PDF:", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur lors de la génération du PDF" },
-      { status: 500 }
-    );
-  }
+        return new NextResponse(pdfBuffer, {
+          headers: {
+            "Content-Type": "application/pdf",
+            "Content-Disposition": `attachment; filename="${title.replace(/\s/g, "_")}.pdf"`,
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+          },
+        });
+      } catch (error: any) {
+        console.error("Error generating PDF:", error);
+        return NextResponse.json(
+          { error: error.message || "Erreur lors de la génération du PDF" },
+          { status: 500 }
+        );
+      }
+    }
+  );
 }
 

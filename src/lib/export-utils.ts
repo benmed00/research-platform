@@ -18,7 +18,10 @@ export type ExportType =
   | "publications"
   | "documents"
   | "leaves"
-  | "salaries";
+  | "salaries"
+  | "waterQuality"
+  | "airQuality"
+  | "climateData";
 
 export interface ExportFilters {
   [key: string]: any;
@@ -93,9 +96,35 @@ export function downloadBlob(blob: Blob, filename: string) {
 }
 
 /**
+ * Export data to CSV
+ */
+export async function exportToCSV(
+  type: ExportType,
+  filters?: ExportFilters
+): Promise<Blob> {
+  const response = await fetch("/api/export/csv", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      type,
+      filters,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || "Erreur lors de l'export CSV");
+  }
+
+  return response.blob();
+}
+
+/**
  * Get filename for export
  */
-export function getExportFilename(type: ExportType, format: "xlsx" | "pdf"): string {
+export function getExportFilename(type: ExportType, format: "xlsx" | "pdf" | "csv"): string {
   const date = new Date().toISOString().split("T")[0];
   const typeNames: Record<ExportType, string> = {
     missions: "missions",
@@ -108,6 +137,9 @@ export function getExportFilename(type: ExportType, format: "xlsx" | "pdf"): str
     documents: "documents",
     leaves: "conges",
     salaries: "salaires",
+    waterQuality: "qualite_eau",
+    airQuality: "qualite_air",
+    climateData: "donnees_climatiques",
   };
   return `${typeNames[type]}-${date}.${format}`;
 }

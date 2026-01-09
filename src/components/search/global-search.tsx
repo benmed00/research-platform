@@ -11,7 +11,23 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Search, X, Loader2, Database, MapPin, Package, Users, FileText, BookOpen, ChevronRight } from "lucide-react";
+import {
+  Search,
+  X,
+  Loader2,
+  Database,
+  MapPin,
+  Package,
+  Users,
+  FileText,
+  BookOpen,
+  ChevronRight,
+  DollarSign,
+  TrendingUp,
+  Droplets,
+  Wind,
+  Thermometer,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { Card } from "@/components/ui/card";
@@ -24,6 +40,12 @@ interface SearchResult {
   employees: any[];
   documents: any[];
   publications: any[];
+  users: any[];
+  expenses: any[];
+  budgets: any[];
+  waterQuality: any[];
+  airQuality: any[];
+  climateData: any[];
 }
 
 interface GlobalSearchProps {
@@ -37,6 +59,12 @@ const typeIcons = {
   employees: Users,
   documents: FileText,
   publications: BookOpen,
+  users: Users,
+  expenses: DollarSign,
+  budgets: TrendingUp,
+  waterQuality: Droplets,
+  airQuality: Wind,
+  climateData: Thermometer,
 };
 
 const typeLabels = {
@@ -46,6 +74,12 @@ const typeLabels = {
   employees: "Employés",
   documents: "Documents",
   publications: "Publications",
+  users: "Utilisateurs",
+  expenses: "Dépenses",
+  budgets: "Budgets",
+  waterQuality: "Qualité de l'eau",
+  airQuality: "Qualité de l'air",
+  climateData: "Données climatiques",
 };
 
 const typeRoutes = {
@@ -55,6 +89,12 @@ const typeRoutes = {
   employees: "/dashboard/rh/employees",
   documents: "/dashboard/documents",
   publications: "/dashboard/publications",
+  users: "/dashboard/users",
+  expenses: "/dashboard/finance/expenses",
+  budgets: "/dashboard/finance/budgets",
+  waterQuality: "/dashboard/environment/water",
+  airQuality: "/dashboard/environment/air",
+  climateData: "/dashboard/environment/climate",
 };
 
 export function GlobalSearch({ className }: GlobalSearchProps) {
@@ -121,6 +161,12 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
         ...results.employees.map((r) => ({ type: "employees" as const, item: r })),
         ...results.documents.map((r) => ({ type: "documents" as const, item: r })),
         ...results.publications.map((r) => ({ type: "publications" as const, item: r })),
+        ...results.users.map((r) => ({ type: "users" as const, item: r })),
+        ...results.expenses.map((r) => ({ type: "expenses" as const, item: r })),
+        ...results.budgets.map((r) => ({ type: "budgets" as const, item: r })),
+        ...results.waterQuality.map((r) => ({ type: "waterQuality" as const, item: r })),
+        ...results.airQuality.map((r) => ({ type: "airQuality" as const, item: r })),
+        ...results.climateData.map((r) => ({ type: "climateData" as const, item: r })),
       ];
 
       if (e.key === "ArrowDown") {
@@ -162,7 +208,13 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
       results.equipment.length +
       results.employees.length +
       results.documents.length +
-      results.publications.length
+      results.publications.length +
+      results.users.length +
+      results.expenses.length +
+      results.budgets.length +
+      results.waterQuality.length +
+      results.airQuality.length +
+      results.climateData.length
     : 0;
 
   return (
@@ -236,6 +288,12 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
                         ...results.employees,
                         ...results.documents,
                         ...results.publications,
+                        ...results.users,
+                        ...results.expenses,
+                        ...results.budgets,
+                        ...results.waterQuality,
+                        ...results.airQuality,
+                        ...results.climateData,
                       ].findIndex((r) => r.id === item.id);
                       const isSelected = selectedIndex === globalIndex;
 
@@ -300,6 +358,71 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
                                 <div className="font-medium text-sm truncate">{item.title}</div>
                                 {item.year && (
                                   <div className="text-xs text-muted-foreground truncate">{item.year}</div>
+                                )}
+                              </div>
+                            )}
+                            {type === "users" && (
+                              <div>
+                                <div className="font-medium text-sm truncate">
+                                  {item.firstName} {item.lastName}
+                                </div>
+                                {item.email && (
+                                  <div className="text-xs text-muted-foreground truncate">{item.email}</div>
+                                )}
+                              </div>
+                            )}
+                            {type === "expenses" && (
+                              <div>
+                                <div className="font-medium text-sm truncate">{item.description}</div>
+                                {item.category && (
+                                  <div className="text-xs text-muted-foreground truncate">
+                                    {item.category} - {item.amount ? `€${Number(item.amount).toFixed(2)}` : ""}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            {type === "budgets" && (
+                              <div>
+                                <div className="font-medium text-sm truncate">
+                                  Budget {item.year}
+                                </div>
+                                {item.totalAmount && (
+                                  <div className="text-xs text-muted-foreground truncate">
+                                    €{Number(item.totalAmount).toFixed(2)}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            {type === "waterQuality" && (
+                              <div>
+                                <div className="font-medium text-sm truncate">{item.location}</div>
+                                {item.type && (
+                                  <div className="text-xs text-muted-foreground truncate">
+                                    {item.type} - {item.date ? new Date(item.date).toLocaleDateString() : ""}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            {type === "airQuality" && (
+                              <div>
+                                <div className="font-medium text-sm truncate">{item.location}</div>
+                                {item.date && (
+                                  <div className="text-xs text-muted-foreground truncate">
+                                    {new Date(item.date).toLocaleDateString()}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            {type === "climateData" && (
+                              <div>
+                                <div className="font-medium text-sm truncate">
+                                  {item.stationId || item.location}
+                                </div>
+                                {item.date && (
+                                  <div className="text-xs text-muted-foreground truncate">
+                                    {new Date(item.date).toLocaleDateString()}
+                                    {item.temperature && ` - ${item.temperature}°C`}
+                                  </div>
                                 )}
                               </div>
                             )}

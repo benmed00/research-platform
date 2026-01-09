@@ -18,6 +18,7 @@ import { loggerHelpers } from "@/lib/logger";
 import { parsePagination, createPaginatedResponse } from "@/lib/pagination";
 import { userSchema } from "@/lib/validations";
 import { validateRequest } from "@/lib/validation-helpers";
+import { validatePassword, addPasswordToHistory } from "@/lib/password-policy";
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -52,10 +53,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate password against policy
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return NextResponse.json(
+        {
+          error: "Le mot de passe ne respecte pas la politique de sécurité",
+          details: passwordValidation.errors,
+        },
+        { status: 400 }
+      );
+    }
+
     // Hasher le mot de passe
     const hashedPassword = await bcrypt.hash(password, 10);
+    const passwordHistory = await addPasswordToHistory(password, null);
 
     // Créer l'utilisateur
+    const now = new Date();
     const user = await prisma.user.create({
       data: {
         firstName,
@@ -63,6 +78,9 @@ export async function POST(request: NextRequest) {
         email,
         password: hashedPassword,
         role,
+        passwordChangedAt: now,
+        passwordHistory: JSON.stringify(passwordHistory),
+        failedLoginAttempts: 0,
       },
     });
 
@@ -94,13 +112,17 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
+  return withRateLimit(
+    request,
+    rateLimitConfigs.api,
+    async () => {
+      try {
+        const session = await getServerSession(authOptions);
+        if (!session) {
+          return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+        }
 
-    const { page, limit, skip, take } = parsePagination(request);
+        const { page, limit, skip, take } = parsePagination(request);
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
@@ -120,16 +142,18 @@ export async function GET(request: NextRequest) {
       prisma.user.count(),
     ]);
 
-    return NextResponse.json(createPaginatedResponse(users, total, page, limit));
-  } catch (error) {
-    loggerHelpers.apiError(error as Error, {
-      route: "/api/users",
-      method: "GET",
-    });
-    return NextResponse.json(
-      { error: "Erreur lors de la récupération" },
-      { status: 500 }
-    );
-  }
+        return NextResponse.json(createPaginatedResponse(users, total, page, limit));
+      } catch (error) {
+        loggerHelpers.apiError(error as Error, {
+          route: "/api/users",
+          method: "GET",
+        });
+        return NextResponse.json(
+          { error: "Erreur lors de la récupération" },
+          { status: 500 }
+        );
+      }
+    }
+  );
 }
 

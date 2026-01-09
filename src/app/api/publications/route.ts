@@ -13,6 +13,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { publicationSchema } from "@/lib/validations";
+import { parsePagination, createPaginatedResponse } from "@/lib/pagination";
 
 export async function POST(request: NextRequest) {
   try {
@@ -69,8 +70,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const year = searchParams.get("year");
     const type = searchParams.get("type");
-    const limit = parseInt(searchParams.get("limit") || "100");
-    const offset = parseInt(searchParams.get("offset") || "0");
+    const { page, limit, skip, take } = parsePagination(request);
 
     const where: any = {};
     if (year) {
@@ -83,8 +83,8 @@ export async function GET(request: NextRequest) {
     const [publications, total] = await Promise.all([
       prisma.publication.findMany({
         where,
-        take: limit,
-        skip: offset,
+        take,
+        skip,
         include: {
           chapters: {
             orderBy: { order: "asc" },
@@ -97,12 +97,7 @@ export async function GET(request: NextRequest) {
 
     // Cache for 5 minutes
     return NextResponse.json(
-      {
-        data: publications,
-        total,
-        limit,
-        offset,
-      },
+      createPaginatedResponse(publications, total, page, limit),
       {
         headers: {
           'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',

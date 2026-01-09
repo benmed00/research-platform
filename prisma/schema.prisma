@@ -60,6 +60,19 @@ model User {
   systemAlerts    Boolean? @default(true)
   weeklyDigest    Boolean? @default(false)
 
+  // 2FA (Two-Factor Authentication)
+  twoFactorEnabled Boolean   @default(false)
+  twoFactorSecret  String?   // TOTP secret
+  twoFactorBackupCodes String? // JSON array of backup codes
+  twoFactorVerifiedAt DateTime?
+
+  // Password Policy
+  passwordChangedAt DateTime? // Track when password was last changed
+  passwordExpiresAt DateTime? // Password expiration date
+  passwordHistory   String?   // JSON array of previous password hashes (last 5)
+  failedLoginAttempts Int      @default(0)
+  accountLockedUntil DateTime? // Account lockout until this time
+
   // Relations
   sessions        Session[]
   loginLogs       LoginLog[]
