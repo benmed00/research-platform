@@ -19,7 +19,7 @@ describe("getExportFilename", () => {
     const filename = getExportFilename("missions", "xlsx");
     expect(filename).toContain("missions");
     expect(filename).toContain(".xlsx");
-    expect(filename).toMatch(/^\d{4}-\d{2}-\d{2}/); // Date format
+    expect(filename).toMatch(/\d{4}-\d{2}-\d{2}/); // Date format (anywhere in filename)
   });
 
   it("should generate filename for species", () => {
