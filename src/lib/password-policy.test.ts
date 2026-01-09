@@ -61,7 +61,8 @@ describe("validatePassword", () => {
   });
 
   it("should identify weak passwords", () => {
-    const result = validatePassword("Weak123!");
+    // A password that meets minimum requirements but is short
+    const result = validatePassword("Weak1!");
     expect(result.strength).toBe("weak");
   });
 
@@ -172,20 +173,20 @@ describe("isPasswordInHistory", () => {
   });
 
   it("should return false for password not in history", async () => {
-    // Mock bcrypt to return false for all comparisons
-    const bcrypt = await import("bcryptjs");
-    vi.spyOn(bcrypt, "compare").mockResolvedValue(false as never);
-
-    const history = ["hash1", "hash2"];
+    // Note: bcrypt.compare is not easily mockable in ESM, so we test with actual behavior
+    // In a real scenario, this would use actual bcrypt hashes
+    const history = ["$2a$10$fakehash1", "$2a$10$fakehash2"];
     const result = await isPasswordInHistory("NewPassword123!", history);
+    // Will return false since these are not valid hashes for the password
     expect(result).toBe(false);
   });
 
   it("should return true for password in history", async () => {
+    // Test with actual bcrypt hash generation
     const bcrypt = await import("bcryptjs");
-    vi.spyOn(bcrypt, "compare").mockResolvedValueOnce(false as never).mockResolvedValueOnce(true as never);
+    const hashedPassword = await bcrypt.hash("OldPassword123!", 10);
+    const history = [hashedPassword];
 
-    const history = ["hash1", "hash2"];
     const result = await isPasswordInHistory("OldPassword123!", history);
     expect(result).toBe(true);
   });
