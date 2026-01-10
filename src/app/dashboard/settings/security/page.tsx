@@ -173,7 +173,7 @@ export default function SecuritySettingsPage() {
                       2FA activée
                     </p>
                     <p className="text-sm text-green-700 dark:text-green-300">
-                      Votre compte est protégé par l'authentification à deux facteurs
+                      Votre compte est protégé par l&apos;authentification à deux facteurs
                     </p>
                   </div>
                 </div>
