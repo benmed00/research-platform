@@ -60,7 +60,7 @@
 
 #### Branch Information
 - ✅ **Base**: `main` (commit: `43c2e3c`)
-- ✅ **Head**: `cursor/global-entity-search-implementation-8e2a` (commit: `c619840`)
+- ✅ **Head**: `yakov/global-entity-search-implementation-8e2a` (commit: `c619840`)
 - ✅ **Documented** in PR description
 - ✅ **Status**: Up-to-date with main
 
@@ -112,7 +112,7 @@
 
 ### Branch
 - **Base**: `main` ✅
-- **Head**: `cursor/global-entity-search-implementation-8e2a` ✅
+- **Head**: `yakov/global-entity-search-implementation-8e2a` ✅
 
 ---
 
@@ -184,4 +184,4 @@
 **Issues**: #79, #80  
 **Milestone**: v1.1 - Performance & User Experience  
 **Related PRs**: #72, #76  
-**Branch**: `cursor/global-entity-search-implementation-8e2a` → `main`
+**Branch**: `yakov/global-entity-search-implementation-8e2a` → `main`
