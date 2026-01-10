@@ -48,6 +48,8 @@ Or use the web interface with the task lists from `PROJECT_INITIAL_TASKS.md`.
 
 - `scripts/setup-labels.ps1` - Creates all labels
 - `scripts/create-sample-issues.ts` - Creates sample issues (requires ts-node)
+- `scripts/create-comprehensive-tasks.ps1` - Creates comprehensive GitHub issues (PowerShell)
+- `scripts/create-comprehensive-tasks.ts` - Creates comprehensive GitHub issues (TypeScript)
 
 ## Next Steps
 
