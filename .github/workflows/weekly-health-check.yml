@@ -1,0 +1,250 @@
+name: Weekly Health Check & Maintenance
+
+on:
+  schedule:
+    # Run every Monday at 8 AM UTC
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  comprehensive-health-check:
+    name: Comprehensive Project Health Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: Generate comprehensive health report
+        run: |
+          echo "## 📊 Weekly Project Health Report" >> $GITHUB_STEP_SUMMARY
+          echo "Generated on: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Codebase statistics
+          echo "### 📈 Codebase Statistics" >> $GITHUB_STEP_SUMMARY
+          TS_FILES=$(find src -name "*.ts" -o -name "*.tsx" | wc -l)
+          TEST_FILES=$(find src -name "*.test.ts" -o -name "*.test.tsx" -o -name "*.spec.ts" -o -name "*.spec.tsx" | wc -l)
+          TOTAL_LINES=$(find src -name "*.ts" -o -name "*.tsx" | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
+          
+          echo "- TypeScript files: $TS_FILES" >> $GITHUB_STEP_SUMMARY
+          echo "- Test files: $TEST_FILES" >> $GITHUB_STEP_SUMMARY
+          echo "- Total lines of code: $TOTAL_LINES" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$TS_FILES" -gt 0 ]; then
+            TEST_RATIO=$(echo "scale=1; $TEST_FILES * 100 / $TS_FILES" | bc || echo "0")
+            echo "- Test coverage ratio: ${TEST_RATIO}%" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Dependency health
+          echo "### 📦 Dependency Health" >> $GITHUB_STEP_SUMMARY
+          npm outdated --json > outdated.json 2>/dev/null || echo "{}" > outdated.json
+          OUTDATED_COUNT=$(jq 'length' outdated.json 2>/dev/null || echo "0")
+          TOTAL_DEPS=$(npm list --depth=0 --json 2>/dev/null | jq '.dependencies | length' || echo "0")
+          
+          echo "- Total dependencies: $TOTAL_DEPS" >> $GITHUB_STEP_SUMMARY
+          echo "- Outdated packages: $OUTDATED_COUNT" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$OUTDATED_COUNT" -gt 0 ]; then
+            echo "- ⚠️  Consider updating outdated dependencies" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ✅ All dependencies are up to date" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Security status
+          echo "### 🔒 Security Status" >> $GITHUB_STEP_SUMMARY
+          npm audit --json > audit.json 2>/dev/null || echo "{}" > audit.json
+          CRITICAL_VULNS=$(jq '.metadata.vulnerabilities.critical // 0' audit.json)
+          HIGH_VULNS=$(jq '.metadata.vulnerabilities.high // 0' audit.json)
+          
+          echo "- Critical vulnerabilities: $CRITICAL_VULNS" >> $GITHUB_STEP_SUMMARY
+          echo "- High vulnerabilities: $HIGH_VULNS" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$CRITICAL_VULNS" -gt 0 ] || [ "$HIGH_VULNS" -gt 5 ]; then
+            echo "- ❌ Action required: Security vulnerabilities detected" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ✅ No critical security issues" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Build health
+          echo "### 🏗️ Build Health" >> $GITHUB_STEP_SUMMARY
+          npm run db:generate
+          npm run build 2>&1 | tee build.log || BUILD_FAILED=true
+          
+          if [ -z "$BUILD_FAILED" ]; then
+            BUILD_SIZE=$(du -sh .next 2>/dev/null | cut -f1 || echo "Unknown")
+            echo "- ✅ Build successful" >> $GITHUB_STEP_SUMMARY
+            echo "- Build size: $BUILD_SIZE" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ Build failed - check logs" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Documentation health
+          echo "### 📚 Documentation Health" >> $GITHUB_STEP_SUMMARY
+          DOC_FILES=$(find docs wiki -name "*.md" 2>/dev/null | wc -l)
+          OLD_DOCS=$(find docs wiki -name "*.md" -type f -mtime +90 2>/dev/null | wc -l)
+          
+          echo "- Documentation files: $DOC_FILES" >> $GITHUB_STEP_SUMMARY
+          echo "- Stale docs (>90 days): $OLD_DOCS" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$OLD_DOCS" -gt 0 ]; then
+            echo "- ⚠️  Consider updating stale documentation" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ✅ Documentation is up to date" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Recent activity
+          echo "### 📅 Recent Activity (Last 7 Days)" >> $GITHUB_STEP_SUMMARY
+          COMMITS_7D=$(git log --since="7 days ago" --oneline | wc -l)
+          PRS_7D=$(gh pr list --state all --limit 10 --json number,title,state 2>/dev/null | jq 'length' || echo "0")
+          
+          echo "- Commits: $COMMITS_7D" >> $GITHUB_STEP_SUMMARY
+          echo "- Pull requests: $PRS_7D" >> $GITHUB_STEP_SUMMARY
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:password@localhost:5432/test?schema=public' }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'health-check-secret' }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL || 'http://localhost:3000' }}
+          SKIP_ENV_VALIDATION: 'true'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+      
+      - name: Upload health report artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-health-report
+          path: |
+            outdated.json
+            audit.json
+            build.log
+          retention-days: 30
+          if-no-files-found: ignore
+      
+      - name: Create health check issue
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `🚨 Weekly Health Check Failed - ${new Date().toISOString().split('T')[0]}`;
+            const body = `The weekly health check workflow has detected issues that require attention.
+            
+            Please review the workflow run for details:
+            ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}
+            
+            This issue was automatically created by the weekly health check workflow.`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['automated', 'health-check', 'maintenance']
+            });
+        continue-on-error: true
+
+  stale-branch-cleanup-check:
+    name: Stale Branch Detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Check for stale branches
+        run: |
+          echo "Checking for stale branches..."
+          
+          # Find branches older than 90 days
+          STALE_BRANCHES=$(git for-each-ref --format='%(refname:short) %(committerdate:relative)' refs/remotes/origin | \
+            grep -E 'months ago|year ago' | grep -v 'main\|develop\|master' | head -10 || true)
+          
+          if [ -n "$STALE_BRANCHES" ]; then
+            echo "## Stale Branch Detection" >> $GITHUB_STEP_SUMMARY
+            echo "The following branches may be candidates for cleanup:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "$STALE_BRANCHES" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "⚠️  Consider reviewing and potentially deleting stale branches" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ No stale branches detected"
+          fi
+        continue-on-error: true
+
+  code-quality-trends:
+    name: Code Quality Trends Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 50  # Last 50 commits for trend analysis
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: Analyze code quality trends
+        run: |
+          echo "Analyzing code quality trends..."
+          
+          echo "## 📊 Code Quality Trends (Last 50 Commits)" >> $GITHUB_STEP_SUMMARY
+          
+          # Check for increasing complexity
+          echo "### Recent Changes" >> $GITHUB_STEP_SUMMARY
+          RECENT_COMMITS=$(git log --oneline --since="30 days ago" | wc -l)
+          FILES_CHANGED=$(git diff --name-only HEAD~30..HEAD 2>/dev/null | wc -l || echo "0")
+          
+          echo "- Commits in last 30 days: $RECENT_COMMITS" >> $GITHUB_STEP_SUMMARY
+          echo "- Files changed: $FILES_CHANGED" >> $GITHUB_STEP_SUMMARY
+          
+          # Check for TODO/FIXME comments
+          TODO_COUNT=$(git grep -i "TODO\|FIXME" -- "*.ts" "*.tsx" 2>/dev/null | wc -l || echo "0")
+          echo "- TODO/FIXME comments: $TODO_COUNT" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$TODO_COUNT" -gt 20 ]; then
+            echo "- ⚠️  High number of TODO/FIXME comments - consider addressing them" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Check for console.log statements (should use proper logger)
+          CONSOLE_LOGS=$(git grep -i "console\.log" -- "*.ts" "*.tsx" 2>/dev/null | wc -l || echo "0")
+          echo "- Console.log statements: $CONSOLE_LOGS" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$CONSOLE_LOGS" -gt 10 ]; then
+            echo "- ⚠️  Consider replacing console.log with proper logger" >> $GITHUB_STEP_SUMMARY
+          fi
+        continue-on-error: true

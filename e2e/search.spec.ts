@@ -9,9 +9,10 @@
  * @size 2.0 KB
  */
 import { test, expect } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
 test.describe('Global Search', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page }: { page: Page }) => {
     // Login first
     await page.goto('/auth/login');
     await page.fill('input[type="email"]', 'admin@research-platform.ma');
@@ -20,7 +21,7 @@ test.describe('Global Search', () => {
     await expect(page).toHaveURL(/\/dashboard/);
   });
 
-  test('should perform global search', async ({ page }) => {
+  test('should perform global search', async ({ page }: { page: Page }) => {
     // Find search input in header
     const searchInput = page.locator('input[placeholder*="Rechercher"]').first();
     
@@ -41,7 +42,7 @@ test.describe('Global Search', () => {
     }
   });
 
-  test('should clear search query', async ({ page }) => {
+  test('should clear search query', async ({ page }: { page: Page }) => {
     const searchInput = page.locator('input[placeholder*="Rechercher"]').first();
     
     if (await searchInput.isVisible()) {

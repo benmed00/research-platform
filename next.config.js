@@ -4,17 +4,25 @@ const { withSentryConfig } = require("@sentry/nextjs");
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['localhost'],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
-  // Optimize development performance
-  swcMinify: true,
   // Reduce Fast Refresh overhead
+  // Note: swcMinify is deprecated in Next.js 13+, SWC is always enabled
   experimental: {
     optimizePackageImports: ['lucide-react', 'recharts'],
   },
   // Skip static generation for pages that require database
   // This allows builds to succeed in CI without a database connection
-  output: 'standalone',
+  // Standalone output is required for Docker deployments (see Dockerfile)
+  // Windows build warnings about file copying are harmless and don't affect Docker builds (Linux-based)
+  output: process.env.SKIP_STANDALONE === 'true' ? undefined : 'standalone',
 }
 
 // Only wrap with Sentry if DSN is configured

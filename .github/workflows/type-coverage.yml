@@ -1,0 +1,169 @@
+name: Type Coverage & API Contract Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  type-coverage:
+    name: TypeScript Type Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: Run TypeScript strict check
+        run: |
+          echo "Running TypeScript strict type check..."
+          npx tsc --noEmit --strict
+          echo "✅ TypeScript strict check passed"
+      
+      - name: Check type coverage
+        run: |
+          echo "Checking type coverage..."
+          
+          # Install type-coverage if available
+          npm list -g type-coverage 2>/dev/null || npm install -g type-coverage 2>/dev/null || true
+          
+          if command -v type-coverage &> /dev/null; then
+            type-coverage --detail > type-coverage.txt || true
+            COVERAGE=$(type-coverage --percentage 2>&1 | tail -1 || echo "0%")
+            echo "Type coverage: $COVERAGE"
+            
+            echo "## Type Coverage Report" >> $GITHUB_STEP_SUMMARY
+            echo "- Coverage: $COVERAGE" >> $GITHUB_STEP_SUMMARY
+            
+            # Check if coverage meets threshold (85%)
+            PERCENTAGE=$(echo "$COVERAGE" | grep -oE '[0-9]+' | head -1)
+            if [ -n "$PERCENTAGE" ] && [ "$PERCENTAGE" -lt 85 ]; then
+              echo "⚠️  Type coverage ($PERCENTAGE%) below threshold (85%)" >> $GITHUB_STEP_SUMMARY
+              echo "::warning::Type coverage below recommended threshold"
+            else
+              echo "✅ Type coverage meets threshold" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "ℹ️  type-coverage not available, skipping detailed coverage check"
+            echo "Install with: npm install -g type-coverage"
+          fi
+        continue-on-error: true
+      
+      - name: Upload type coverage results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: type-coverage
+          path: type-coverage.txt
+          retention-days: 7
+          if-no-files-found: ignore
+
+  api-contract-validation:
+    name: API Contract Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: Validate API route types
+        run: |
+          echo "Validating API route type safety..."
+          
+          # Check API routes for proper request/response types
+          API_ROUTES=$(find src/app/api -name "route.ts" -type f 2>/dev/null || true)
+          ROUTES_WITH_TYPES=0
+          ROUTES_WITHOUT_TYPES=0
+          
+          while IFS= read -r route; do
+            if grep -q "Request\|NextRequest\|Response\|NextResponse" "$route"; then
+              ROUTES_WITH_TYPES=$((ROUTES_WITH_TYPES + 1))
+            else
+              echo "⚠️  API route missing type annotations: $route"
+              ROUTES_WITHOUT_TYPES=$((ROUTES_WITHOUT_TYPES + 1))
+            fi
+          done <<< "$API_ROUTES"
+          
+          echo "## API Contract Validation" >> $GITHUB_STEP_SUMMARY
+          echo "- Routes with type annotations: $ROUTES_WITH_TYPES" >> $GITHUB_STEP_SUMMARY
+          
+          if [ $ROUTES_WITHOUT_TYPES -gt 0 ]; then
+            echo "- Routes without types: $ROUTES_WITHOUT_TYPES" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️  Some API routes are missing type annotations" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ All API routes have type annotations" >> $GITHUB_STEP_SUMMARY
+          fi
+        continue-on-error: true
+      
+      - name: Validate Zod schemas
+        run: |
+          echo "Validating Zod schema usage..."
+          
+          # Check for Zod schema validation in API routes
+          API_ROUTES=$(find src/app/api -name "route.ts" -type f 2>/dev/null || true)
+          ROUTES_WITH_SCHEMAS=0
+          
+          while IFS= read -r route; do
+            if grep -q "z\.object\|zod\|z\.string\|z\.number" "$route"; then
+              ROUTES_WITH_SCHEMAS=$((ROUTES_WITH_SCHEMAS + 1))
+            fi
+          done <<< "$API_ROUTES"
+          
+          TOTAL_ROUTES=$(echo "$API_ROUTES" | wc -l || echo "0")
+          
+          echo "## Schema Validation Check" >> $GITHUB_STEP_SUMMARY
+          echo "- Total API routes: $TOTAL_ROUTES" >> $GITHUB_STEP_SUMMARY
+          echo "- Routes with Zod schemas: $ROUTES_WITH_SCHEMAS" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$TOTAL_ROUTES" -gt 0 ]; then
+            SCHEMA_PERCENTAGE=$((ROUTES_WITH_SCHEMAS * 100 / TOTAL_ROUTES))
+            echo "- Schema coverage: ${SCHEMA_PERCENTAGE}%" >> $GITHUB_STEP_SUMMARY
+            
+            if [ $SCHEMA_PERCENTAGE -lt 80 ]; then
+              echo "⚠️  Schema validation coverage below recommended threshold (80%)" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "✅ Schema validation coverage meets threshold" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+        continue-on-error: true
+      
+      - name: Check Prisma schema type safety
+        run: |
+          echo "Validating Prisma schema type safety..."
+          
+          # Generate Prisma client to check for type errors
+          npm run db:generate
+          env:
+            DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:password@localhost:5432/test?schema=public' }}
+          
+          # Type check should catch any Prisma type issues
+          npx tsc --noEmit
+          echo "✅ Prisma schema types are valid"
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:password@localhost:5432/test?schema=public' }}
+        continue-on-error: true

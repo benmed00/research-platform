@@ -30,7 +30,7 @@ jobs:
         run: npm ci --prefer-offline --no-audit
       
       - name: Run tests
-        run: npm test --if-present
+        run: npm run test:run
         continue-on-error: true
       
       - name: Upload test results
