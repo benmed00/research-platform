@@ -18,6 +18,31 @@ jobs:
     timeout-minutes: 2
     
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+          sha: ${{ github.event.workflow_run.head_sha }}
+      
+      - name: Set commit status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const conclusion = '${{ github.event.workflow_run.conclusion }}';
+            const state = conclusion === 'success' ? 'success' : 'failure';
+            const description = conclusion === 'success' 
+              ? '✅ CI/CD Pipeline passed' 
+              : '❌ CI/CD Pipeline failed';
+            
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: '${{ github.event.workflow_run.head_sha }}',
+              state: state,
+              description: description,
+              context: 'Update Status'
+            });
+      
       - name: Check workflow status
         run: |
           if [ "${{ github.event.workflow_run.conclusion }}" == "success" ]; then
