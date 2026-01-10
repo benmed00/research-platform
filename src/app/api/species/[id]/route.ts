@@ -16,7 +16,7 @@ import { speciesSchema } from "@/lib/validations";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -25,7 +25,7 @@ export async function GET(
     }
 
     const species = await prisma.species.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         observations: {
           orderBy: { date: "desc" },
@@ -71,7 +71,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -84,7 +84,7 @@ export async function PUT(
 
     // Check if species exists
     const existingSpecies = await prisma.species.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingSpecies) {
@@ -92,7 +92,7 @@ export async function PUT(
     }
 
     const species = await prisma.species.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         scientificName: validatedData.scientificName,
         commonName: validatedData.commonName || undefined,
@@ -134,7 +134,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -144,7 +144,7 @@ export async function DELETE(
 
     // Check if species exists
     const species = await prisma.species.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         observations: true,
         locations: true,
@@ -174,7 +174,7 @@ export async function DELETE(
 
     // Only allow deletion if no scientific data exists
     await prisma.species.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     await prisma.auditLog.create({
@@ -182,7 +182,7 @@ export async function DELETE(
         userId: session.user.id,
         action: "DELETE",
         entity: "Species",
-        entityId: params.id,
+        entityId: id,
         changes: JSON.stringify({ deleted: true }),
       },
     });
