@@ -17,7 +17,7 @@ import { notifyMissionCompleted } from "@/lib/notifications";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -25,9 +25,8 @@ export async function GET(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { id } = await params;
     const mission = await prisma.mission.findUnique({
-      where: { id },
+      where: { id: params.id },
       include: {
         creator: {
           select: {
@@ -112,7 +111,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -120,13 +119,12 @@ export async function PUT(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { id } = await params;
     const data = await request.json();
     const validatedData = missionSchema.parse(data);
 
     // Check if mission exists
     const existingMission = await prisma.mission.findUnique({
-      where: { id: id },
+      where: { id: params.id },
     });
 
     if (!existingMission) {
@@ -135,7 +133,7 @@ export async function PUT(
 
     // Update mission basic data
     const mission = await prisma.mission.update({
-      where: { id: id },
+      where: { id: params.id },
       data: {
         title: validatedData.title,
         description: validatedData.description || undefined,
@@ -180,14 +178,14 @@ export async function PUT(
     if (data.teamMembers && Array.isArray(data.teamMembers)) {
       // Delete existing teams
       await prisma.missionTeam.deleteMany({
-        where: { missionId: id },
+        where: { missionId: params.id },
       });
 
       // Create new teams
       if (data.teamMembers.length > 0) {
         await prisma.missionTeam.createMany({
           data: data.teamMembers.map((userId: string) => ({
-            missionId: id,
+            missionId: params.id,
             userId,
             role: "member",
           })),
@@ -199,14 +197,14 @@ export async function PUT(
     if (data.equipmentIds && Array.isArray(data.equipmentIds)) {
       // Delete existing equipment assignments
       await prisma.missionEquipment.deleteMany({
-        where: { missionId: id },
+        where: { missionId: params.id },
       });
 
       // Create new equipment assignments
       if (data.equipmentIds.length > 0) {
         await prisma.missionEquipment.createMany({
           data: data.equipmentIds.map((equipmentId: string) => ({
-            missionId: id,
+            missionId: params.id,
             equipmentId,
             quantity: 1,
           })),
@@ -231,7 +229,7 @@ export async function PUT(
 
     // Fetch updated mission with all relations
     const updatedMission = await prisma.mission.findUnique({
-      where: { id: id },
+      where: { id: params.id },
       include: {
         creator: {
           select: {
@@ -279,7 +277,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -287,10 +285,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { id } = await params;
     // Check if mission exists
     const mission = await prisma.mission.findUnique({
-      where: { id: id },
+      where: { id: params.id },
       include: {
         teams: true,
         equipment: true,
@@ -309,7 +306,7 @@ export async function DELETE(
     if (mission.documents.length > 0 || mission.report) {
       // Option 1: Soft delete by changing status
       await prisma.mission.update({
-        where: { id: id },
+        where: { id: params.id },
         data: { status: "cancelled" },
       });
 
@@ -318,7 +315,7 @@ export async function DELETE(
           userId: session.user.id,
           action: "DELETE",
           entity: "Mission",
-          entityId: id,
+          entityId: params.id,
           changes: JSON.stringify({ status: "cancelled", softDelete: true }),
         },
       });
@@ -330,7 +327,7 @@ export async function DELETE(
     } else {
       // Hard delete if no critical dependencies
       await prisma.mission.delete({
-        where: { id: id },
+        where: { id: params.id },
       });
 
       await prisma.auditLog.create({
@@ -338,7 +335,7 @@ export async function DELETE(
           userId: session.user.id,
           action: "DELETE",
           entity: "Mission",
-          entityId: id,
+          entityId: params.id,
           changes: JSON.stringify({ deleted: true }),
         },
       });

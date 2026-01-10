@@ -16,7 +16,7 @@ import { speciesSchema } from "@/lib/validations";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -24,9 +24,8 @@ export async function GET(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { id } = await params;
     const species = await prisma.species.findUnique({
-      where: { id },
+      where: { id: params.id },
       include: {
         observations: {
           orderBy: { date: "desc" },
@@ -72,7 +71,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -80,13 +79,12 @@ export async function PUT(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { id } = await params;
     const data = await request.json();
     const validatedData = speciesSchema.parse(data);
 
     // Check if species exists
     const existingSpecies = await prisma.species.findUnique({
-      where: { id },
+      where: { id: params.id },
     });
 
     if (!existingSpecies) {
@@ -94,7 +92,7 @@ export async function PUT(
     }
 
     const species = await prisma.species.update({
-      where: { id },
+      where: { id: params.id },
       data: {
         scientificName: validatedData.scientificName,
         commonName: validatedData.commonName || undefined,
@@ -136,7 +134,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -144,10 +142,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { id } = await params;
     // Check if species exists
     const species = await prisma.species.findUnique({
-      where: { id },
+      where: { id: params.id },
       include: {
         observations: true,
         locations: true,
@@ -177,7 +174,7 @@ export async function DELETE(
 
     // Only allow deletion if no scientific data exists
     await prisma.species.delete({
-      where: { id },
+      where: { id: params.id },
     });
 
     await prisma.auditLog.create({
@@ -185,7 +182,7 @@ export async function DELETE(
         userId: session.user.id,
         action: "DELETE",
         entity: "Species",
-        entityId: id,
+        entityId: params.id,
         changes: JSON.stringify({ deleted: true }),
       },
     });

@@ -20,7 +20,7 @@ import { canAccessResource } from "@/lib/permissions";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -28,9 +28,8 @@ export async function GET(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { id } = await params;
     const document = await prisma.document.findUnique({
-      where: { id },
+      where: { id: params.id },
       include: {
         author: {
           select: {
@@ -75,7 +74,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -83,13 +82,12 @@ export async function PUT(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { id } = await params;
     const data = await request.json();
     const validatedData = documentSchema.parse(data);
 
     // Check if document exists
     const existingDocument = await prisma.document.findUnique({
-      where: { id },
+      where: { id: params.id },
     });
 
     if (!existingDocument) {
@@ -102,7 +100,7 @@ export async function PUT(
     }
 
     const document = await prisma.document.update({
-      where: { id },
+      where: { id: params.id },
       data: {
         title: validatedData.title,
         type: validatedData.type,
@@ -155,7 +153,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -163,10 +161,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { id } = await params;
     // Check if document exists
     const document = await prisma.document.findUnique({
-      where: { id },
+      where: { id: params.id },
     });
 
     if (!document) {
@@ -193,7 +190,7 @@ export async function DELETE(
 
     // Delete document record
     await prisma.document.delete({
-      where: { id },
+      where: { id: params.id },
     });
 
     await prisma.auditLog.create({
@@ -201,7 +198,7 @@ export async function DELETE(
         userId: session.user.id,
         action: "DELETE",
         entity: "Document",
-        entityId: id,
+        entityId: params.id,
         changes: JSON.stringify({ deleted: true }),
       },
     });

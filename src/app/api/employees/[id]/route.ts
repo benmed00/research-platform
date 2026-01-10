@@ -16,7 +16,7 @@ import { employeeSchema } from "@/lib/validations";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -24,9 +24,8 @@ export async function GET(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { id } = await params;
     const employee = await prisma.employee.findUnique({
-      where: { id },
+      where: { id: params.id },
       include: {
         user: {
           select: {
@@ -88,7 +87,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -96,13 +95,12 @@ export async function PUT(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { id } = await params;
     const data = await request.json();
     const validatedData = employeeSchema.parse(data);
 
     // Check if employee exists
     const existingEmployee = await prisma.employee.findUnique({
-      where: { id },
+      where: { id: params.id },
     });
 
     if (!existingEmployee) {
@@ -110,7 +108,7 @@ export async function PUT(
     }
 
     const employee = await prisma.employee.update({
-      where: { id },
+      where: { id: params.id },
       data: {
         userId: validatedData.userId || undefined,
         employeeNumber: validatedData.employeeNumber,
@@ -165,7 +163,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -173,10 +171,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { id } = await params;
     // Check if employee exists
     const employee = await prisma.employee.findUnique({
-      where: { id },
+      where: { id: params.id },
       include: {
         salaries: true,
         bonuses: true,
@@ -197,13 +194,13 @@ export async function DELETE(
         employee.missionAssignments.length > 0) {
       // Soft delete
       await prisma.employee.update({
-        where: { id },
+        where: { id: params.id },
         data: { isActive: false },
       });
     } else {
       // Hard delete if no dependencies
       await prisma.employee.delete({
-        where: { id },
+        where: { id: params.id },
       });
     }
 
@@ -212,7 +209,7 @@ export async function DELETE(
         userId: session.user.id,
         action: "DELETE",
         entity: "Employee",
-        entityId: id,
+        entityId: params.id,
         changes: JSON.stringify({ deleted: true }),
       },
     });
