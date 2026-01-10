@@ -137,7 +137,7 @@ Converted several server components to client components for better interactivit
 
 ### Branch Information
 - **Base Branch**: `main` (commit: `43c2e3c`)
-- **Head Branch**: `cursor/global-entity-search-implementation-8e2a` (commit: `e6a96a5`)
+- **Head Branch**: `yakov/global-entity-search-implementation-8e2a` (commit: `e6a96a5`)
 - **Status**: Up-to-date with main, ready for merge
 
 ## 🧪 Testing

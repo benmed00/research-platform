@@ -22,7 +22,7 @@
 - **Title**: Research platform wiki generation
 - **URL**: https://github.com/benmed00/research-platform/pull/60
 - **State**: Open
-- **Branch**: `cursor/research-platform-wiki-generation-af8c`
+- **Branch**: `yakov/research-platform-wiki-generation-af8c`
 
 ## 📋 Manual Steps to Complete
 
