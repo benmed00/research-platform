@@ -24,7 +24,7 @@ import { useApi } from "@/hooks/use-api";
 import { documentSchema } from "@/lib/validations";
 import { z } from "zod";
 
-type DocumentFormData = z.infer<typeof documentSchema>;
+type DocumentFormData = z.input<typeof documentSchema>;
 
 const documentTypes = [
   "RAPPORT_SCIENTIFIQUE",
@@ -37,7 +37,7 @@ const documentTypes = [
 const typeLabels: Record<string, string> = {
   RAPPORT_SCIENTIFIQUE: "Rapport Scientifique",
   RAPPORT_ADMINISTRATIF: "Rapport Administratif",
-  DONNEE_BRUTE: "Donnée Brute",
+  DONNEE_BRUTE: "DonnÃ©e Brute",
   PUBLICATION: "Publication",
   AUTRE: "Autre",
 };
@@ -54,6 +54,9 @@ export default function EditDocumentPage() {
     setValue,
   } = useForm<DocumentFormData>({
     resolver: zodResolver(documentSchema),
+    defaultValues: {
+      isPublic: false,
+    },
   });
 
   useEffect(() => {
@@ -87,7 +90,7 @@ export default function EditDocumentPage() {
           body: JSON.stringify(data),
         }),
       {
-        successMessage: "Document mis à jour avec succès!",
+        successMessage: "Document mis Ã  jour avec succÃ¨s!",
         redirect: `/dashboard/documents/${params.id}`,
       }
     );
@@ -113,7 +116,7 @@ export default function EditDocumentPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Modifier le document</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">Modifier les métadonnées du document</p>
+        <p className="text-gray-600 dark:text-gray-400 mt-2">Modifier les mÃ©tadonnÃ©es du document</p>
       </div>
 
       <Card className="p-6">
@@ -139,7 +142,7 @@ export default function EditDocumentPage() {
               {...register("type")}
               className={errors.type ? "border-red-500" : ""}
             >
-              <option value="">Sélectionner un type</option>
+              <option value="">SÃ©lectionner un type</option>
               {documentTypes.map((type) => (
                 <option key={type} value={type}>
                   {typeLabels[type]}
@@ -164,7 +167,7 @@ export default function EditDocumentPage() {
             </label>
             <Input
               {...register("missionId")}
-              placeholder="ID de la mission associée"
+              placeholder="ID de la mission associÃ©e"
             />
           </div>
 

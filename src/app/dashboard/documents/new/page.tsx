@@ -24,23 +24,10 @@ import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { FileUpload } from "@/components/ui/file-upload";
 import { useToast } from "@/components/ui/toast";
+import { documentSchema } from "@/lib/validations";
 import { z } from "zod";
 
-const documentSchema = z.object({
-  title: z.string().min(1, "Le titre est requis"),
-  type: z.enum([
-    "RAPPORT_SCIENTIFIQUE",
-    "RAPPORT_ADMINISTRATIF",
-    "DONNEE_BRUTE",
-    "PUBLICATION",
-    "AUTRE",
-  ]),
-  description: z.string().optional(),
-  missionId: z.string().optional(),
-  isPublic: z.boolean().default(false),
-});
-
-type DocumentFormData = z.infer<typeof documentSchema>;
+type DocumentFormData = z.input<typeof documentSchema>;
 
 const documentTypes = [
   "RAPPORT_SCIENTIFIQUE",
@@ -53,7 +40,7 @@ const documentTypes = [
 const typeLabels: Record<string, string> = {
   RAPPORT_SCIENTIFIQUE: "Rapport Scientifique",
   RAPPORT_ADMINISTRATIF: "Rapport Administratif",
-  DONNEE_BRUTE: "Donnée Brute",
+  DONNEE_BRUTE: "DonnÃ©e Brute",
   PUBLICATION: "Publication",
   AUTRE: "Autre",
 };
@@ -69,11 +56,14 @@ export default function NewDocumentPage() {
     formState: { errors, isSubmitting },
   } = useForm<DocumentFormData>({
     resolver: zodResolver(documentSchema),
+    defaultValues: {
+      isPublic: false,
+    },
   });
 
   const onSubmit = async (data: DocumentFormData) => {
     if (!file) {
-      showToast("Veuillez sélectionner un fichier", "warning");
+      showToast("Veuillez sÃ©lectionner un fichier", "warning");
       return;
     }
 
@@ -85,7 +75,7 @@ export default function NewDocumentPage() {
       formDataObj.append("type", data.type);
       if (data.description) formDataObj.append("description", data.description);
       if (data.missionId) formDataObj.append("missionId", data.missionId);
-      formDataObj.append("isPublic", data.isPublic.toString());
+      formDataObj.append("isPublic", (data.isPublic ?? false).toString());
 
       const response = await fetch("/api/documents", {
         method: "POST",
@@ -93,14 +83,14 @@ export default function NewDocumentPage() {
       });
 
       if (response.ok) {
-        showToast("Document créé avec succès!", "success");
+        showToast("Document crÃ©Ã© avec succÃ¨s!", "success");
         router.push("/dashboard/documents");
       } else {
         const error = await response.json();
-        showToast(error.error || "Erreur lors de la création", "error");
+        showToast(error.error || "Erreur lors de la crÃ©ation", "error");
       }
     } catch (error) {
-      showToast("Erreur lors de la création", "error");
+      showToast("Erreur lors de la crÃ©ation", "error");
     } finally {
       setUploading(false);
     }
@@ -126,9 +116,9 @@ export default function NewDocumentPage() {
 
       <Card variant="elevated">
         <CardHeader>
-          <CardTitle>Détails du document</CardTitle>
+          <CardTitle>DÃ©tails du document</CardTitle>
           <CardDescription>
-            Remplissez les informations et téléversez le fichier pour ajouter un nouveau document.
+            Remplissez les informations et tÃ©lÃ©versez le fichier pour ajouter un nouveau document.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -157,7 +147,7 @@ export default function NewDocumentPage() {
                 {...register("type")}
                 className={errors.type ? "border-destructive" : ""}
               >
-                <option value="">Sélectionner un type</option>
+                <option value="">SÃ©lectionner un type</option>
                 {documentTypes.map((type) => (
                   <option key={type} value={type}>
                     {typeLabels[type]}
@@ -207,7 +197,7 @@ export default function NewDocumentPage() {
 
             <div className="flex items-center gap-4 border-t border-border pt-6 mt-6">
               <Button type="submit" disabled={isSubmitting || uploading}>
-                {uploading ? "Upload en cours..." : isSubmitting ? "Création..." : "Créer"}
+                {uploading ? "Upload en cours..." : isSubmitting ? "CrÃ©ation..." : "CrÃ©er"}
               </Button>
               <Button type="button" variant="outline" onClick={() => router.back()}>
                 Annuler

@@ -39,7 +39,7 @@
     "seed": "ts-node --project tsconfig.seed.json prisma/seed.ts"
   },
   "dependencies": {
-    "@hookform/resolvers": "^3.9.0",
+    "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^5.19.0",
     "@sentry/nextjs": "^10.32.1",
     "@types/leaflet.markercluster": "^1.5.6",

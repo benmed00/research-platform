@@ -25,7 +25,7 @@ import { useApi } from "@/hooks/use-api";
 import { publicationSchema } from "@/lib/validations";
 import { z } from "zod";
 
-type PublicationFormData = z.infer<typeof publicationSchema> & {
+type PublicationFormData = z.input<typeof publicationSchema> & {
   content?: string;
   coverImage?: string;
 };
@@ -41,8 +41,8 @@ const typeLabels: Record<string, string> = {
 
 const statusLabels: Record<string, string> = {
   DRAFT: "Brouillon",
-  IN_REVIEW: "En révision",
-  PUBLISHED: "Publié",
+  IN_REVIEW: "En rÃ©vision",
+  PUBLISHED: "PubliÃ©",
 };
 
 export default function EditPublicationPage() {
@@ -103,7 +103,7 @@ export default function EditPublicationPage() {
           body: JSON.stringify(updateData),
         }),
       {
-        successMessage: "Publication mise à jour avec succès!",
+        successMessage: "Publication mise Ã  jour avec succÃ¨s!",
         redirect: `/dashboard/publications/${params.id}`,
       }
     );
@@ -150,7 +150,7 @@ export default function EditPublicationPage() {
           <div className="grid grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Année *
+                AnnÃ©e *
               </label>
               <Input
                 type="number"
@@ -170,7 +170,7 @@ export default function EditPublicationPage() {
                 {...register("type")}
                 className={errors.type ? "border-red-500" : ""}
               >
-                <option value="">Sélectionner un type</option>
+                <option value="">SÃ©lectionner un type</option>
                 {publicationTypes.map((type) => (
                   <option key={type} value={type}>
                     {typeLabels[type]}
@@ -192,8 +192,8 @@ export default function EditPublicationPage() {
               className={errors.status ? "border-red-500" : ""}
             >
               <option value="DRAFT">Brouillon</option>
-              <option value="IN_REVIEW">En révision</option>
-              <option value="PUBLISHED">Publié</option>
+              <option value="IN_REVIEW">En rÃ©vision</option>
+              <option value="PUBLISHED">PubliÃ©</option>
             </Select>
             {errors.status && (
               <p className="text-red-500 text-sm mt-1">{errors.status.message}</p>
