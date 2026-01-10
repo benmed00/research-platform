@@ -30,15 +30,15 @@ const publicationSchema = z.object({
       const year = parseInt(val);
       return !isNaN(year) && year >= 2020 && year <= 2100;
     },
-    { message: "L'année doit être entre 2020 et 2100" }
+    { message: "L'annÃ©e doit Ãªtre entre 2020 et 2100" }
   ),
   type: z.string().min(1, "Le type est requis"),
   content: z.string().optional(),
   coverImage: z.string().optional(),
-  isPublished: z.boolean().default(false),
+  isPublished: z.boolean().optional().default(false),
 });
 
-type PublicationFormData = z.infer<typeof publicationSchema>;
+type PublicationFormData = z.input<typeof publicationSchema>;
 
 export default function NewPublicationPage() {
   const router = useRouter();
@@ -63,7 +63,7 @@ export default function NewPublicationPage() {
           body: JSON.stringify(data),
         }),
       {
-        successMessage: "Publication créée avec succès!",
+        successMessage: "Publication crÃ©Ã©e avec succÃ¨s!",
         onSuccess: (publication) => {
           router.push(`/dashboard/publications/${publication.id}`);
         },
@@ -84,16 +84,16 @@ export default function NewPublicationPage() {
             Nouvelle publication
           </h1>
           <p className="text-base text-gray-600 dark:text-gray-400 mt-1.5">
-            Créer une nouvelle publication
+            CrÃ©er une nouvelle publication
           </p>
         </div>
       </div>
 
       <Card variant="elevated">
         <CardHeader>
-          <CardTitle>Détails de la publication</CardTitle>
+          <CardTitle>DÃ©tails de la publication</CardTitle>
           <CardDescription>
-            Remplissez les informations pour créer une nouvelle publication.
+            Remplissez les informations pour crÃ©er une nouvelle publication.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -116,7 +116,7 @@ export default function NewPublicationPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="year" required>
-                  Année
+                  AnnÃ©e
                 </Label>
                 <Input
                   id="year"
@@ -174,13 +174,13 @@ export default function NewPublicationPage() {
                 className="rounded border-input"
               />
               <Label htmlFor="isPublished" className="font-normal cursor-pointer">
-                Publier immédiatement
+                Publier immÃ©diatement
               </Label>
             </div>
 
             <div className="flex items-center gap-4 border-t border-border pt-6 mt-6">
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Création..." : "Créer"}
+                {isSubmitting ? "CrÃ©ation..." : "CrÃ©er"}
               </Button>
               <Button type="button" variant="outline" onClick={() => router.back()}>
                 Annuler
