@@ -111,7 +111,7 @@ export default function SecuritySettingsPage() {
   };
 
   const handleDisable2FA = async () => {
-    if (!confirm("Êtes-vous sûr de vouloir désactiver l&apos;authentification à deux facteurs ?")) {
+    if (!confirm("Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ?")) {
       return;
     }
 
