@@ -24,8 +24,9 @@ export async function GET(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
+    const { id } = await params;
     const user = await prisma.user.findUnique({
-      where: { id: id },
+      where: { id },
       select: {
         id: true,
         firstName: true,
@@ -62,12 +63,13 @@ export async function PUT(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
+    const { id } = await params;
     const data = await request.json();
     const { firstName, lastName, email, password, role, isActive } = data;
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
-      where: { id: id },
+      where: { id },
     });
 
     if (!existingUser) {
@@ -102,7 +104,7 @@ export async function PUT(
     }
 
     const user = await prisma.user.update({
-      where: { id: id },
+      where: { id },
       data: updateData,
       select: {
         id: true,

@@ -24,8 +24,9 @@ export async function GET(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
+    const { id } = await params;
     const employee = await prisma.employee.findUnique({
-      where: { id: id },
+      where: { id },
       include: {
         user: {
           select: {
@@ -95,12 +96,13 @@ export async function PUT(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
+    const { id } = await params;
     const data = await request.json();
     const validatedData = employeeSchema.parse(data);
 
     // Check if employee exists
     const existingEmployee = await prisma.employee.findUnique({
-      where: { id: id },
+      where: { id },
     });
 
     if (!existingEmployee) {
@@ -108,7 +110,7 @@ export async function PUT(
     }
 
     const employee = await prisma.employee.update({
-      where: { id: id },
+      where: { id },
       data: {
         userId: validatedData.userId || undefined,
         employeeNumber: validatedData.employeeNumber,
@@ -171,9 +173,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
+    const { id } = await params;
     // Check if employee exists
     const employee = await prisma.employee.findUnique({
-      where: { id: id },
+      where: { id },
       include: {
         salaries: true,
         bonuses: true,
@@ -194,13 +197,13 @@ export async function DELETE(
         employee.missionAssignments.length > 0) {
       // Soft delete
       await prisma.employee.update({
-        where: { id: id },
+        where: { id },
         data: { isActive: false },
       });
     } else {
       // Hard delete if no dependencies
       await prisma.employee.delete({
-        where: { id: id },
+        where: { id },
       });
     }
 

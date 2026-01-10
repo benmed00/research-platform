@@ -24,8 +24,9 @@ export async function GET(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
+    const { id } = await params;
     const equipment = await prisma.equipment.findUnique({
-      where: { id: id },
+      where: { id },
       include: {
         maintenances: {
           orderBy: { date: "desc" },
@@ -73,12 +74,13 @@ export async function PUT(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
+    const { id } = await params;
     const data = await request.json();
     const validatedData = equipmentSchema.parse(data);
 
     // Check if equipment exists
     const existingEquipment = await prisma.equipment.findUnique({
-      where: { id: id },
+      where: { id },
     });
 
     if (!existingEquipment) {
@@ -86,7 +88,7 @@ export async function PUT(
     }
 
     const equipment = await prisma.equipment.update({
-      where: { id: id },
+      where: { id },
       data: {
         name: validatedData.name,
         category: validatedData.category,
@@ -140,9 +142,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
+    const { id } = await params;
     // Check if equipment exists
     const equipment = await prisma.equipment.findUnique({
-      where: { id: id },
+      where: { id },
       include: {
         maintenances: true,
         missionEquipment: true,
@@ -157,7 +160,7 @@ export async function DELETE(
     if (equipment.missionEquipment.length > 0) {
       // Soft delete by changing status to RETIRED
       await prisma.equipment.update({
-        where: { id: id },
+        where: { id },
         data: { status: "RETIRED" },
       });
 
@@ -178,7 +181,7 @@ export async function DELETE(
     } else {
       // Hard delete if no dependencies
       await prisma.equipment.delete({
-        where: { id: id },
+        where: { id },
       });
 
       await prisma.auditLog.create({

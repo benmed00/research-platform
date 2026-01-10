@@ -193,7 +193,7 @@ export async function DELETE(
 
     // Delete document record
     await prisma.document.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     await prisma.auditLog.create({
