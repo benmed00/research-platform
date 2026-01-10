@@ -10,12 +10,12 @@
  */
 import { z } from "zod";
 
-// Schéma de validation pour les utilisateurs
+// SchÃ©ma de validation pour les utilisateurs
 export const userSchema = z.object({
-  firstName: z.string().min(2, "Le prénom doit contenir au moins 2 caractères"),
-  lastName: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
+  firstName: z.string().min(2, "Le prÃ©nom doit contenir au moins 2 caractÃ¨res"),
+  lastName: z.string().min(2, "Le nom doit contenir au moins 2 caractÃ¨res"),
   email: z.string().email("Email invalide"),
-  password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+  password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractÃ¨res"),
   role: z.enum([
     "DIRECTEUR_SCIENTIFIQUE",
     "DIRECTEUR_ADMINISTRATIF_FINANCIER",
@@ -35,24 +35,24 @@ export const userSchema = z.object({
   ]),
 });
 
-// Schéma de validation pour les employés
+// SchÃ©ma de validation pour les employÃ©s
 export const employeeSchema = z.object({
   userId: z.string().optional(),
-  employeeNumber: z.string().min(1, "Le numéro d'employé est requis"),
+  employeeNumber: z.string().min(1, "Le numÃ©ro d'employÃ© est requis"),
   hireDate: z.string().min(1, "La date d'embauche est requise"),
   contractType: z.enum(["CDI", "CDD", "STAGE", "CONSULTANT"]),
-  contractStart: z.string().min(1, "La date de début du contrat est requise"),
+  contractStart: z.string().min(1, "La date de dÃ©but du contrat est requise"),
   contractEnd: z.string().optional(),
   baseSalary: z.string().refine(
     (val) => {
       const num = parseFloat(val);
       return !isNaN(num) && num >= 0;
     },
-    { message: "Le salaire doit être un nombre positif" }
+    { message: "Le salaire doit Ãªtre un nombre positif" }
   ),
 });
 
-// Schéma de validation pour les équipements
+// SchÃ©ma de validation pour les Ã©quipements
 export const equipmentSchema = z.object({
   name: z.string().min(1, "Le nom est requis"),
   category: z.enum([
@@ -71,7 +71,7 @@ export const equipmentSchema = z.object({
       const num = parseFloat(val);
       return !isNaN(num) && num >= 0;
     },
-    { message: "Le prix doit être un nombre positif" }
+    { message: "Le prix doit Ãªtre un nombre positif" }
   ),
   lifespan: z.string().optional().refine(
     (val) => {
@@ -79,18 +79,18 @@ export const equipmentSchema = z.object({
       const num = parseInt(val);
       return !isNaN(num) && num > 0;
     },
-    { message: "La durée de vie doit être un nombre positif" }
+    { message: "La durÃ©e de vie doit Ãªtre un nombre positif" }
   ),
   location: z.string().optional(),
   description: z.string().optional(),
   status: z.enum(["AVAILABLE", "IN_USE", "MAINTENANCE", "RETIRED"]),
 });
 
-// Schéma de validation pour les missions
+// SchÃ©ma de validation pour les missions
 export const missionSchema = z.object({
   title: z.string().min(1, "Le titre est requis"),
   description: z.string().optional(),
-  startDate: z.string().min(1, "La date de début est requise"),
+  startDate: z.string().min(1, "La date de dÃ©but est requise"),
   endDate: z.string().min(1, "La date de fin est requise"),
   status: z.enum(["PLANNED", "IN_PROGRESS", "COMPLETED", "CANCELLED"]),
   location: z.string().min(1, "La localisation est requise"),
@@ -99,7 +99,7 @@ export const missionSchema = z.object({
   objectives: z.string().optional(),
 });
 
-// Schéma de validation pour les espèces
+// SchÃ©ma de validation pour les espÃ¨ces
 export const speciesSchema = z.object({
   scientificName: z.string().min(1, "Le nom scientifique est requis"),
   commonName: z.string().optional(),
@@ -119,25 +119,25 @@ export const speciesSchema = z.object({
   description: z.string().optional(),
 });
 
-// Schéma de validation pour les budgets
+// SchÃ©ma de validation pour les budgets
 export const budgetSchema = z.object({
   year: z.string().refine(
     (val) => {
       const year = parseInt(val);
       return !isNaN(year) && year >= 2020 && year <= 2100;
     },
-    { message: "L'année doit être entre 2020 et 2100" }
+    { message: "L'annÃ©e doit Ãªtre entre 2020 et 2100" }
   ),
   totalAmount: z.string().refine(
     (val) => {
       const num = parseFloat(val);
       return !isNaN(num) && num >= 0;
     },
-    { message: "Le montant total doit être un nombre positif" }
+    { message: "Le montant total doit Ãªtre un nombre positif" }
   ),
 });
 
-// Schéma de validation pour les dépenses
+// SchÃ©ma de validation pour les dÃ©penses
 export const expenseSchema = z.object({
   description: z.string().min(1, "La description est requise"),
   amount: z.string().refine(
@@ -145,14 +145,14 @@ export const expenseSchema = z.object({
       const num = parseFloat(val);
       return !isNaN(num) && num > 0;
     },
-    { message: "Le montant doit être un nombre positif" }
+    { message: "Le montant doit Ãªtre un nombre positif" }
   ),
-  category: z.string().min(1, "La catégorie est requise"),
+  category: z.string().min(1, "La catÃ©gorie est requise"),
   date: z.string().min(1, "La date est requise"),
   projectId: z.string().optional(),
 });
 
-// Schéma de validation pour la qualité de l'eau
+// SchÃ©ma de validation pour la qualitÃ© de l'eau
 export const waterQualitySchema = z.object({
   type: z.enum(["MER", "SOURCE", "BARRAGE"]),
   location: z.string().min(1, "La localisation est requise"),
@@ -167,7 +167,7 @@ export const waterQualitySchema = z.object({
   notes: z.string().optional(),
 });
 
-// Schéma de validation pour la qualité de l'air
+// SchÃ©ma de validation pour la qualitÃ© de l'air
 export const airQualitySchema = z.object({
   location: z.string().min(1, "La localisation est requise"),
   latitude: z.string().optional(),
@@ -181,7 +181,7 @@ export const airQualitySchema = z.object({
   notes: z.string().optional(),
 });
 
-// Schéma de validation pour les données climatiques
+// SchÃ©ma de validation pour les donnÃ©es climatiques
 export const climateDataSchema = z.object({
   stationId: z.string().optional(),
   location: z.string().min(1, "La localisation est requise"),
@@ -197,44 +197,44 @@ export const climateDataSchema = z.object({
   notes: z.string().optional(),
 });
 
-// Schéma de validation pour les congés
+// SchÃ©ma de validation pour les congÃ©s
 export const leaveSchema = z.object({
-  employeeId: z.string().min(1, "L'employé est requis"),
-  type: z.string().min(1, "Le type de congé est requis"),
-  startDate: z.string().min(1, "La date de début est requise"),
+  employeeId: z.string().min(1, "L'employÃ© est requis"),
+  type: z.string().min(1, "Le type de congÃ© est requis"),
+  startDate: z.string().min(1, "La date de dÃ©but est requise"),
   endDate: z.string().min(1, "La date de fin est requise"),
-  status: z.enum(["pending", "approved", "rejected"]).default("pending"),
+  status: z.enum(["pending", "approved", "rejected"]).optional().default("pending"),
   reason: z.string().optional(),
 });
 
-// Schéma de validation pour les salaires
+// SchÃ©ma de validation pour les salaires
 export const salarySchema = z.object({
-  employeeId: z.string().min(1, "L'employé est requis"),
+  employeeId: z.string().min(1, "L'employÃ© est requis"),
   amount: z.string().refine(
     (val) => {
       const num = parseFloat(val);
       return !isNaN(num) && num > 0;
     },
-    { message: "Le montant doit être un nombre positif" }
+    { message: "Le montant doit Ãªtre un nombre positif" }
   ),
   month: z.string().refine(
     (val) => {
       const num = parseInt(val);
       return !isNaN(num) && num >= 1 && num <= 12;
     },
-    { message: "Le mois doit être entre 1 et 12" }
+    { message: "Le mois doit Ãªtre entre 1 et 12" }
   ),
   year: z.string().refine(
     (val) => {
       const num = parseInt(val);
       return !isNaN(num) && num >= 2020 && num <= 2100;
     },
-    { message: "L'année doit être entre 2020 et 2100" }
+    { message: "L'annÃ©e doit Ãªtre entre 2020 et 2100" }
   ),
   paidAt: z.string().optional(),
 });
 
-// Schéma de validation pour les documents
+// SchÃ©ma de validation pour les documents
 export const documentSchema = z.object({
   title: z.string().min(1, "Le titre est requis"),
   type: z.enum([
@@ -246,10 +246,10 @@ export const documentSchema = z.object({
   ]),
   description: z.string().optional(),
   missionId: z.string().optional(),
-  isPublic: z.boolean().default(false),
+  isPublic: z.boolean().optional().default(false),
 });
 
-// Schéma de validation pour les publications
+// SchÃ©ma de validation pour les publications
 export const publicationSchema = z.object({
   title: z.string().min(1, "Le titre est requis"),
   type: z.enum(["LIVRE_ANNUEL", "ARTICLE", "RAPPORT", "AUTRE"]),
@@ -258,9 +258,9 @@ export const publicationSchema = z.object({
       const year = parseInt(val);
       return !isNaN(year) && year >= 2020 && year <= 2100;
     },
-    { message: "L'année doit être entre 2020 et 2100" }
+    { message: "L'annÃ©e doit Ãªtre entre 2020 et 2100" }
   ),
-  status: z.enum(["DRAFT", "IN_REVIEW", "PUBLISHED"]).default("DRAFT"),
+  status: z.enum(["DRAFT", "IN_REVIEW", "PUBLISHED"]).optional().default("DRAFT"),
   description: z.string().optional(),
 });
 
