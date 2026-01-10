@@ -1,0 +1,208 @@
+name: PR Quality & Completeness Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  pr-quality-check:
+    name: PR Quality Assessment
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: Check PR size
+        run: |
+          echo "Checking PR size..."
+          
+          BASE_SHA=${{ github.event.pull_request.base.sha }}
+          HEAD_SHA=${{ github.event.pull_request.head.sha }}
+          
+          FILES_CHANGED=$(git diff --name-only $BASE_SHA..$HEAD_SHA | wc -l)
+          LINES_ADDED=$(git diff --shortstat $BASE_SHA..$HEAD_SHA | awk '{print $4}' || echo "0")
+          LINES_DELETED=$(git diff --shortstat $BASE_SHA..$HEAD_SHA | awk '{print $6}' || echo "0")
+          
+          echo "## PR Size Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "- Files changed: $FILES_CHANGED" >> $GITHUB_STEP_SUMMARY
+          echo "- Lines added: $LINES_ADDED" >> $GITHUB_STEP_SUMMARY
+          echo "- Lines deleted: $LINES_DELETED" >> $GITHUB_STEP_SUMMARY
+          
+          # Warn if PR is very large (>1000 lines or >50 files)
+          if [ "$FILES_CHANGED" -gt 50 ] || [ "$LINES_ADDED" -gt 1000 ]; then
+            echo "⚠️  Large PR detected - consider splitting into smaller PRs for easier review" >> $GITHUB_STEP_SUMMARY
+            echo "::warning::Large PR detected - consider splitting into smaller PRs"
+          else
+            echo "✅ PR size is reasonable" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Check for test coverage
+        run: |
+          echo "Checking test coverage for changed files..."
+          
+          BASE_SHA=${{ github.event.pull_request.base.sha }}
+          HEAD_SHA=${{ github.event.pull_request.head.sha }}
+          
+          CHANGED_FILES=$(git diff --name-only $BASE_SHA..$HEAD_SHA | grep -E "\.(ts|tsx)$" | grep -v test || true)
+          
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "✅ No source files changed or only test files modified"
+            echo "## Test Coverage Check" >> $GITHUB_STEP_SUMMARY
+            echo "✅ No additional test coverage needed" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+          
+          MISSING_TESTS=0
+          echo "## Test Coverage Check" >> $GITHUB_STEP_SUMMARY
+          echo "Files changed:" >> $GITHUB_STEP_SUMMARY
+          
+          while IFS= read -r file; do
+            if [ -z "$file" ]; then continue; fi
+            
+            # Check if corresponding test file exists
+            TEST_FILE=$(echo "$file" | sed -E 's/\.(ts|tsx)$/.test.\1/')
+            SPEC_FILE=$(echo "$file" | sed -E 's/\.(ts|tsx)$/.spec.\1/')
+            
+            if [ ! -f "$TEST_FILE" ] && [ ! -f "$SPEC_FILE" ]; then
+              # Check if file contains testable code (not just types)
+              if grep -qE "export (function|const|class)" "$file" 2>/dev/null; then
+                echo "- ⚠️  $file (no test file found)" >> $GITHUB_STEP_SUMMARY
+                MISSING_TESTS=$((MISSING_TESTS + 1))
+              else
+                echo "- ℹ️  $file (likely no tests needed)" >> $GITHUB_STEP_SUMMARY
+              fi
+            else
+              echo "- ✅ $file (has test file)" >> $GITHUB_STEP_SUMMARY
+            fi
+          done <<< "$CHANGED_FILES"
+          
+          if [ $MISSING_TESTS -gt 0 ]; then
+            echo "⚠️  Consider adding tests for changed files" >> $GITHUB_STEP_SUMMARY
+            echo "::notice::Some changed files may need test coverage"
+          else
+            echo "✅ Test coverage looks good" >> $GITHUB_STEP_SUMMARY
+          fi
+        continue-on-error: true
+      
+      - name: Check PR description quality
+        run: |
+          echo "Checking PR description quality..."
+          
+          PR_BODY="${{ github.event.pull_request.body }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          
+          echo "## PR Description Check" >> $GITHUB_STEP_SUMMARY
+          
+          # Check if PR has a description
+          if [ -z "$PR_BODY" ] || [ "$PR_BODY" == "null" ]; then
+            echo "❌ PR description is empty" >> $GITHUB_STEP_SUMMARY
+            echo "Please add a description explaining what this PR does and why" >> $GITHUB_STEP_SUMMARY
+            echo "::warning::PR description is empty"
+            exit 1
+          fi
+          
+          # Check description length
+          DESC_LENGTH=$(echo "$PR_BODY" | wc -c)
+          if [ "$DESC_LENGTH" -lt 50 ]; then
+            echo "⚠️  PR description is very short ($DESC_LENGTH characters)" >> $GITHUB_STEP_SUMMARY
+            echo "Consider adding more details about what this PR does" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ PR has a description (${DESC_LENGTH} characters)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Check for keywords indicating good PR description
+          if echo "$PR_BODY" | grep -qiE "what|why|how|fixes|closes|implements"; then
+            echo "✅ PR description includes context (what/why/how)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️  Consider including what, why, and how in your PR description" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Check for breaking changes
+        run: |
+          echo "Checking for potential breaking changes..."
+          
+          BASE_SHA=${{ github.event.pull_request.base.sha }}
+          HEAD_SHA=${{ github.event.pull_request.head.sha }}
+          
+          # Check for breaking changes in API routes
+          API_CHANGES=$(git diff $BASE_SHA..$HEAD_SHA --name-only | grep "src/app/api" || true)
+          
+          if [ -n "$API_CHANGES" ]; then
+            echo "## Breaking Changes Check" >> $GITHUB_STEP_SUMMARY
+            echo "API routes have been modified:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "$API_CHANGES" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            
+            # Check PR description for breaking change notice
+            PR_BODY="${{ github.event.pull_request.body }}"
+            if echo "$PR_BODY" | grep -qiE "breaking|deprecat|migrat|upgrade"; then
+              echo "✅ Breaking changes mentioned in PR description" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "⚠️  API changes detected - please verify if these are breaking changes" >> $GITHUB_STEP_SUMMARY
+              echo "If breaking, mention it in the PR description" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+          
+          # Check for database migrations
+          MIGRATION_CHANGES=$(git diff $BASE_SHA..$HEAD_SHA --name-only | grep "prisma/migrations\|prisma/schema.prisma" || true)
+          
+          if [ -n "$MIGRATION_CHANGES" ]; then
+            echo "## Database Migration Check" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️  Database schema changes detected:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "$MIGRATION_CHANGES" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "Please ensure:" >> $GITHUB_STEP_SUMMARY
+            echo "- Migration is reversible" >> $GITHUB_STEP_SUMMARY
+            echo "- Migration has been tested" >> $GITHUB_STEP_SUMMARY
+            echo "- Breaking changes are documented" >> $GITHUB_STEP_SUMMARY
+          fi
+        continue-on-error: true
+      
+      - name: Check for console statements
+        run: |
+          echo "Checking for console statements in production code..."
+          
+          BASE_SHA=${{ github.event.pull_request.base.sha }}
+          HEAD_SHA=${{ github.event.pull_request.head.sha }}
+          
+          CONSOLE_LOGS=$(git diff $BASE_SHA..$HEAD_SHA | grep -E "^\+.*console\.(log|error|warn|debug)" | grep -v "//" | grep -v "test" || true)
+          
+          if [ -n "$CONSOLE_LOGS" ]; then
+            echo "## Console Statement Check" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️  Console statements detected in production code:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "$CONSOLE_LOGS" | head -5 >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "Consider using the logger utility instead" >> $GITHUB_STEP_SUMMARY
+            echo "::warning::Console statements detected - use logger utility instead"
+          else
+            echo "✅ No console statements in production code" >> $GITHUB_STEP_SUMMARY
+          fi
+        continue-on-error: true
+      
+      - name: Generate PR quality report
+        if: always()
+        run: |
+          echo "## 📋 PR Quality Report Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Quality checks completed" >> $GITHUB_STEP_SUMMARY
+          echo "- Review the sections above for any warnings or issues" >> $GITHUB_STEP_SUMMARY
+          echo "- Ensure all CI checks pass before requesting review" >> $GITHUB_STEP_SUMMARY

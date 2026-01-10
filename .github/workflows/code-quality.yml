@@ -1,0 +1,126 @@
+name: Code Quality & Coherence
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  format-check:
+    name: Code Formatting Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: Check file headers consistency
+        id: headers-check
+        run: |
+          echo "Checking file header consistency..."
+          HEADER_ISSUES=0
+          MISSING_HEADERS=0
+          
+          # Check TypeScript files for headers
+          while IFS= read -r file; do
+            if [ ! -f "$file" ]; then continue; fi
+            if ! head -n 1 "$file" | grep -q "^\*\*"; then
+              echo "⚠️  Missing header: $file"
+              MISSING_HEADERS=$((MISSING_HEADERS + 1))
+            fi
+          done < <(find src scripts -name "*.ts" -o -name "*.tsx" 2>/dev/null | head -20)
+          
+          if [ $MISSING_HEADERS -gt 0 ]; then
+            echo "Found $MISSING_HEADERS files with missing or inconsistent headers"
+            echo "missing_headers=$MISSING_HEADERS" >> $GITHUB_OUTPUT
+            exit 0  # Non-blocking for now
+          else
+            echo "✅ All checked files have proper headers"
+            echo "missing_headers=0" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
+      
+      - name: Check import organization
+        run: |
+          echo "Checking import organization..."
+          # Check for unused imports (basic check)
+          npx eslint . --ext .ts,.tsx --rule 'no-unused-vars: error' --max-warnings 0 || true
+        continue-on-error: true
+      
+      - name: Code structure analysis
+        run: |
+          echo "## Code Structure Analysis" >> $GITHUB_STEP_SUMMARY
+          
+          # Count files by type
+          TS_FILES=$(find src -name "*.ts" -o -name "*.tsx" | wc -l)
+          TEST_FILES=$(find src -name "*.test.ts" -o -name "*.test.tsx" -o -name "*.spec.ts" -o -name "*.spec.tsx" | wc -l)
+          COMPONENT_FILES=$(find src/components -name "*.tsx" 2>/dev/null | wc -l || echo "0")
+          API_FILES=$(find src/app/api -name "route.ts" 2>/dev/null | wc -l || echo "0")
+          
+          echo "- Total TypeScript files: $TS_FILES" >> $GITHUB_STEP_SUMMARY
+          echo "- Test files: $TEST_FILES" >> $GITHUB_STEP_SUMMARY
+          echo "- Component files: $COMPONENT_FILES" >> $GITHUB_STEP_SUMMARY
+          echo "- API routes: $API_FILES" >> $GITHUB_STEP_SUMMARY
+          
+          # Calculate test coverage ratio
+          if [ "$TS_FILES" -gt 0 ]; then
+            TEST_RATIO=$(echo "scale=2; $TEST_FILES * 100 / $TS_FILES" | bc || echo "0")
+            echo "- Test coverage ratio: ${TEST_RATIO}%" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  file-size-check:
+    name: File Size & Complexity Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check for oversized files
+        run: |
+          echo "Checking for oversized files..."
+          LARGE_FILES=0
+          
+          while IFS= read -r file; do
+            LINES=$(wc -l < "$file" 2>/dev/null || echo "0")
+            if [ "$LINES" -gt 500 ]; then
+              echo "⚠️  Large file detected: $file ($LINES lines)"
+              LARGE_FILES=$((LARGE_FILES + 1))
+            fi
+          done < <(find src -name "*.ts" -o -name "*.tsx" 2>/dev/null)
+          
+          if [ $LARGE_FILES -gt 0 ]; then
+            echo "Found $LARGE_FILES files exceeding 500 lines"
+            echo "Consider splitting large files for better maintainability"
+          else
+            echo "✅ No oversized files detected"
+          fi
+        continue-on-error: true
+      
+      - name: Check for circular dependencies
+        run: |
+          echo "Checking for potential circular dependencies..."
+          # Basic check using madge (if available) or manual pattern detection
+          npm list -g madge 2>/dev/null || npm install -g madge 2>/dev/null || true
+          if command -v madge &> /dev/null; then
+            madge --circular src/ || echo "⚠️  Potential circular dependencies detected"
+          else
+            echo "ℹ️  Madge not available, skipping circular dependency check"
+          fi
+        continue-on-error: true

@@ -1,0 +1,185 @@
+name: Semantic Versioning & Commit Message Validation
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*.*.*'
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  commit-message-check:
+    name: Commit Message Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Validate commit messages
+        run: |
+          echo "Validating commit messages for semantic compliance..."
+          
+          # Get commits in PR
+          if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
+            BASE_SHA=${{ github.event.pull_request.base.sha }}
+            HEAD_SHA=${{ github.event.pull_request.head.sha }}
+          else
+            BASE_SHA=$(git rev-parse HEAD~1)
+            HEAD_SHA=$(git rev-parse HEAD)
+          fi
+          
+          # Check commits for semantic commit format
+          INVALID_COMMITS=0
+          COMMIT_PATTERN="^(feat|fix|docs|style|refactor|perf|test|chore|build|ci|revert)(\(.+\))?: .{1,}"
+          
+          while IFS= read -r commit; do
+            COMMIT_MSG=$(git log --format=%B -n 1 "$commit" | head -1)
+            if ! echo "$COMMIT_MSG" | grep -qE "$COMMIT_PATTERN"; then
+              echo "⚠️  Invalid commit message: $COMMIT_MSG"
+              echo "   Expected format: type(scope): description"
+              echo "   Types: feat, fix, docs, style, refactor, perf, test, chore, build, ci, revert"
+              INVALID_COMMITS=$((INVALID_COMMITS + 1))
+            fi
+          done < <(git rev-list $BASE_SHA..$HEAD_SHA)
+          
+          if [ $INVALID_COMMITS -gt 0 ]; then
+            echo "## Commit Message Validation" >> $GITHUB_STEP_SUMMARY
+            echo "❌ Found $INVALID_COMMITS invalid commit messages" >> $GITHUB_STEP_SUMMARY
+            echo "Please use semantic commit format: type(scope): description" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "✅ All commit messages follow semantic format"
+            echo "## Commit Message Validation" >> $GITHUB_STEP_SUMMARY
+            echo "✅ All commits follow semantic commit format" >> $GITHUB_STEP_SUMMARY
+          fi
+        continue-on-error: true
+
+  branch-name-check:
+    name: Branch Naming Convention Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Check branch naming
+        run: |
+          echo "Checking branch naming convention..."
+          
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+          
+          # Branch naming pattern: type/description (e.g., feature/new-dashboard, fix/login-bug)
+          BRANCH_PATTERN="^(feature|fix|bugfix|hotfix|docs|style|refactor|test|chore|build|release)/.+"
+          
+          if echo "$BRANCH_NAME" | grep -qE "$BRANCH_PATTERN"; then
+            echo "✅ Branch name follows convention: $BRANCH_NAME"
+            echo "## Branch Naming Check" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Branch name: $BRANCH_NAME" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️  Branch name doesn't follow convention: $BRANCH_NAME"
+            echo "Expected format: type/description (e.g., feature/new-dashboard)"
+            echo "## Branch Naming Check" >> $GITHUB_STEP_SUMMARY
+            echo "❌ Branch name doesn't follow convention" >> $GITHUB_STEP_SUMMARY
+            echo "- Current: $BRANCH_NAME" >> $GITHUB_STEP_SUMMARY
+            echo "- Expected: type/description (feature, fix, docs, etc.)" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+        continue-on-error: true
+
+  version-validation:
+    name: Version Tag Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Validate semantic version tag
+        run: |
+          echo "Validating semantic version tag..."
+          
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          
+          # Check if tag follows semantic versioning (e.g., v1.2.3)
+          VERSION_PATTERN="^v([0-9]+)\.([0-9]+)\.([0-9]+)(-.*)?$"
+          
+          if echo "$TAG_NAME" | grep -qE "$VERSION_PATTERN"; then
+            echo "✅ Valid semantic version tag: $TAG_NAME"
+            
+            # Extract version components
+            VERSION=$(echo "$TAG_NAME" | sed -E 's/^v//')
+            MAJOR=$(echo "$VERSION" | cut -d. -f1)
+            MINOR=$(echo "$VERSION" | cut -d. -f2)
+            PATCH=$(echo "$VERSION" | cut -d. -f3 | cut -d- -f1)
+            
+            echo "## Version Tag Validation" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Valid semantic version: $TAG_NAME" >> $GITHUB_STEP_SUMMARY
+            echo "- Major: $MAJOR" >> $GITHUB_STEP_SUMMARY
+            echo "- Minor: $MINOR" >> $GITHUB_STEP_SUMMARY
+            echo "- Patch: $PATCH" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Invalid version tag format: $TAG_NAME"
+            echo "Expected format: vMAJOR.MINOR.PATCH (e.g., v1.2.3)"
+            exit 1
+          fi
+      
+      - name: Check version consistency with package.json
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          VERSION=$(echo "$TAG_NAME" | sed -E 's/^v//')
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          
+          if [ "$VERSION" == "$PACKAGE_VERSION" ]; then
+            echo "✅ Version tag matches package.json version"
+          else
+            echo "⚠️  Version tag ($VERSION) doesn't match package.json ($PACKAGE_VERSION)"
+            echo "Consider updating package.json version to match tag"
+          fi
+        continue-on-error: true
+
+  changelog-validation:
+    name: Changelog Entry Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check for changelog entry
+        run: |
+          echo "Checking for changelog entry..."
+          
+          if [ -f "CHANGELOG.md" ] || [ -f "docs/CHANGELOG.md" ]; then
+            CHANGELOG_FILE="CHANGELOG.md"
+            if [ ! -f "$CHANGELOG_FILE" ]; then
+              CHANGELOG_FILE="docs/CHANGELOG.md"
+            fi
+            
+            # Check if there's a recent changelog entry
+            if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
+              echo "ℹ️  Skipping changelog check for pull requests"
+            else
+              TAG_NAME="${GITHUB_REF#refs/tags/}"
+              if grep -q "$TAG_NAME\|$(echo "$TAG_NAME" | sed 's/^v//')" "$CHANGELOG_FILE"; then
+                echo "✅ Changelog entry found for version $TAG_NAME"
+              else
+                echo "⚠️  No changelog entry found for version $TAG_NAME"
+                echo "Please add an entry to $CHANGELOG_FILE"
+              fi
+            fi
+          else
+            echo "ℹ️  No CHANGELOG.md found (optional but recommended)"
+          fi
+        continue-on-error: true

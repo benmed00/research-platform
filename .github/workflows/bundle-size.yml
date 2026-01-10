@@ -1,0 +1,163 @@
+name: Bundle Size & Performance Budget
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  bundle-analysis:
+    name: Bundle Size Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: Generate Prisma Client
+        run: npm run db:generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:password@localhost:5432/test?schema=public' }}
+      
+      - name: Build application
+        run: npm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:password@localhost:5432/test?schema=public' }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'build-secret' }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL || 'http://localhost:3000' }}
+          SKIP_ENV_VALIDATION: 'true'
+          ANALYZE: 'true'
+      
+      - name: Analyze bundle size
+        run: |
+          echo "Analyzing bundle size..."
+          
+          # Check .next directory size
+          if [ -d ".next" ]; then
+            BUILD_SIZE=$(du -sh .next | cut -f1)
+            BUILD_SIZE_BYTES=$(du -sb .next | cut -f1)
+            
+            echo "## Bundle Size Analysis" >> $GITHUB_STEP_SUMMARY
+            echo "- Build directory size: $BUILD_SIZE" >> $GITHUB_STEP_SUMMARY
+            
+            # Check static assets
+            if [ -d ".next/static" ]; then
+              STATIC_SIZE=$(du -sh .next/static | cut -f1)
+              echo "- Static assets size: $STATIC_SIZE" >> $GITHUB_STEP_SUMMARY
+              
+              # Find largest chunks
+              echo "### Largest JavaScript Chunks" >> $GITHUB_STEP_SUMMARY
+              find .next/static/chunks -name "*.js" -type f -exec du -h {} \; | sort -rh | head -10 >> $GITHUB_STEP_SUMMARY || true
+            fi
+            
+            # Performance budget (warn if build exceeds 50MB)
+            MAX_SIZE=$((50 * 1024 * 1024))  # 50MB in bytes
+            if [ "$BUILD_SIZE_BYTES" -gt "$MAX_SIZE" ]; then
+              echo "⚠️  Build size exceeds performance budget (50MB)" >> $GITHUB_STEP_SUMMARY
+              echo "::warning::Build size ($BUILD_SIZE) exceeds recommended budget"
+            else
+              echo "✅ Build size within budget" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "⚠️  Build directory not found" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Check for duplicate dependencies
+        run: |
+          echo "Checking for duplicate dependencies..."
+          npm ls --depth=0 > dependencies.txt 2>&1 || true
+          
+          # Check for version mismatches
+          DUPLICATES=$(npm ls 2>&1 | grep -i "unmet\|invalid\|extraneous" | wc -l || echo "0")
+          
+          if [ "$DUPLICATES" -gt 0 ]; then
+            echo "⚠️  Potential dependency issues detected"
+            npm ls 2>&1 | head -20
+          else
+            echo "✅ No obvious dependency conflicts"
+          fi
+        continue-on-error: true
+      
+      - name: Upload build artifacts for analysis
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-analysis-${{ github.sha }}
+          path: |
+            .next/static
+          retention-days: 7
+          if-no-files-found: ignore
+
+  lighthouse-performance:
+    name: Lighthouse Performance Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: Generate Prisma Client
+        run: npm run db:generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:password@localhost:5432/test?schema=public' }}
+      
+      - name: Build application
+        run: npm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:password@localhost:5432/test?schema=public' }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'lighthouse-secret' }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL || 'http://localhost:3000' }}
+          SKIP_ENV_VALIDATION: 'true'
+      
+      - name: Start application
+        run: |
+          npm start &
+          sleep 10
+          curl -f http://localhost:3000 || exit 1
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:password@localhost:5432/test?schema=public' }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'lighthouse-secret' }}
+          NEXTAUTH_URL: 'http://localhost:3000'
+          PORT: '3000'
+        continue-on-error: true
+      
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          configPath: '.lighthouserc.json'
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+        continue-on-error: true
+      
+      - name: Performance summary
+        if: always()
+        run: |
+          echo "## Lighthouse Performance Check" >> $GITHUB_STEP_SUMMARY
+          echo "- Performance budget monitoring enabled" >> $GITHUB_STEP_SUMMARY
+          echo "- See Lighthouse CI report for detailed metrics" >> $GITHUB_STEP_SUMMARY

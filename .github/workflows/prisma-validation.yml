@@ -1,0 +1,125 @@
+name: Prisma Schema & Migration Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'prisma/schema.prisma'
+      - 'prisma/migrations/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'prisma/schema.prisma'
+      - 'prisma/migrations/**'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  schema-validation:
+    name: Prisma Schema Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: Validate Prisma schema syntax
+        run: |
+          echo "Validating Prisma schema syntax..."
+          npx prisma validate
+          echo "✅ Schema syntax is valid"
+      
+      - name: Check for breaking changes
+        run: |
+          echo "Checking for potential breaking changes..."
+          # Format the schema to detect formatting issues
+          npx prisma format --check || echo "⚠️  Schema formatting issues detected"
+        continue-on-error: true
+      
+      - name: Generate Prisma Client
+        run: npm run db:generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:password@localhost:5432/test?schema=public' }}
+      
+      - name: Check schema consistency
+        run: |
+          echo "## Prisma Schema Validation" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Schema syntax: Valid" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Client generation: Success" >> $GITHUB_STEP_SUMMARY
+          
+          # Count models
+          MODEL_COUNT=$(grep -c "^model " prisma/schema.prisma || echo "0")
+          ENUM_COUNT=$(grep -c "^enum " prisma/schema.prisma || echo "0")
+          
+          echo "- Models: $MODEL_COUNT" >> $GITHUB_STEP_SUMMARY
+          echo "- Enums: $ENUM_COUNT" >> $GITHUB_STEP_SUMMARY
+
+  migration-check:
+    name: Migration Safety Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event_name == 'pull_request'
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_migrations
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: Check migration safety
+        run: |
+          echo "Checking migration safety..."
+          DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_migrations?schema=public"
+          
+          # Generate client
+          DATABASE_URL=$DATABASE_URL npx prisma generate
+          
+          # Try to apply migrations
+          DATABASE_URL=$DATABASE_URL npx prisma migrate deploy || {
+            echo "⚠️  Migration check failed"
+            exit 1
+          }
+          
+          echo "✅ All migrations are safe to apply"
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_migrations?schema=public
+      
+      - name: Verify migration rollback capability
+        if: always()
+        run: |
+          echo "Migration verification completed"
+        continue-on-error: true

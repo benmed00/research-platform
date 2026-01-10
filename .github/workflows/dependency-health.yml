@@ -1,0 +1,195 @@
+name: Dependency Health & Security Monitoring
+
+on:
+  schedule:
+    # Run weekly on Mondays at 9 AM UTC
+    - cron: '0 9 * * 1'
+  push:
+    branches: [ main ]
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  dependency-audit:
+    name: Dependency Security Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: Run npm audit
+        id: npm-audit
+        run: |
+          echo "Running npm audit..."
+          npm audit --audit-level=moderate --json > audit-results.json || true
+          
+          # Parse results
+          HIGH_VULNS=$(jq '.metadata.vulnerabilities.high // 0' audit-results.json)
+          MODERATE_VULNS=$(jq '.metadata.vulnerabilities.moderate // 0' audit-results.json)
+          CRITICAL_VULNS=$(jq '.metadata.vulnerabilities.critical // 0' audit-results.json)
+          
+          echo "critical=$CRITICAL_VULNS" >> $GITHUB_OUTPUT
+          echo "high=$HIGH_VULNS" >> $GITHUB_OUTPUT
+          echo "moderate=$MODERATE_VULNS" >> $GITHUB_OUTPUT
+          
+          if [ "$CRITICAL_VULNS" -gt 0 ] || [ "$HIGH_VULNS" -gt 10 ]; then
+            echo "⚠️  Security vulnerabilities detected"
+            npm audit --audit-level=moderate
+            exit 1
+          else
+            echo "✅ No critical security issues found"
+          fi
+        continue-on-error: true
+      
+      - name: Upload audit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-results
+          path: audit-results.json
+          retention-days: 30
+          if-no-files-found: ignore
+      
+      - name: Security summary
+        if: always()
+        run: |
+          echo "## Dependency Security Audit Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Critical: ${{ steps.npm-audit.outputs.critical }}" >> $GITHUB_STEP_SUMMARY
+          echo "- High: ${{ steps.npm-audit.outputs.high }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Moderate: ${{ steps.npm-audit.outputs.moderate }}" >> $GITHUB_STEP_SUMMARY
+
+  outdated-dependencies:
+    name: Check Outdated Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Check for outdated packages
+        run: |
+          echo "Checking for outdated dependencies..."
+          npm outdated --json > outdated-packages.json || true
+          
+          # Count outdated packages
+          OUTDATED_COUNT=$(jq 'length' outdated-packages.json || echo "0")
+          
+          if [ "$OUTDATED_COUNT" -gt 0 ]; then
+            echo "⚠️  Found $OUTDATED_COUNT outdated packages"
+            echo "## Outdated Dependencies" >> $GITHUB_STEP_SUMMARY
+            jq -r 'to_entries[] | "- \(.key): \(.value.current) → \(.value.latest)"' outdated-packages.json >> $GITHUB_STEP_SUMMARY || true
+          else
+            echo "✅ All dependencies are up to date"
+            echo "## Outdated Dependencies" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ All packages are up to date" >> $GITHUB_STEP_SUMMARY
+          fi
+        continue-on-error: true
+      
+      - name: Upload outdated packages list
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: outdated-packages
+          path: outdated-packages.json
+          retention-days: 7
+          if-no-files-found: ignore
+
+  dependency-licenses:
+    name: License Compliance Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: Check licenses
+        run: |
+          echo "Checking dependency licenses..."
+          npm install -g license-checker 2>/dev/null || true
+          
+          if command -v license-checker &> /dev/null; then
+            license-checker --json > licenses.json || true
+            
+            # Check for problematic licenses
+            RESTRICTED=$(jq 'to_entries[] | select(.value.licenses | test("GPL|AGPL")) | .key' licenses.json || echo "")
+            
+            if [ -n "$RESTRICTED" ]; then
+              echo "⚠️  Restricted licenses detected:"
+              echo "$RESTRICTED"
+            else
+              echo "✅ No restricted licenses found"
+            fi
+          else
+            echo "ℹ️  License checker not available, skipping"
+          fi
+        continue-on-error: true
+
+  deprecation-check:
+    name: Deprecation Warning Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Check for deprecated packages
+        run: |
+          echo "Checking for deprecated packages..."
+          npm install 2>&1 | grep -i "deprecated" > deprecations.txt || true
+          
+          if [ -s deprecations.txt ]; then
+            echo "⚠️  Deprecated packages detected:"
+            cat deprecations.txt
+            echo "## Deprecation Warnings" >> $GITHUB_STEP_SUMMARY
+            cat deprecations.txt >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ No deprecation warnings"
+            echo "## Deprecation Warnings" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ No deprecated packages" >> $GITHUB_STEP_SUMMARY
+          fi
+        continue-on-error: true

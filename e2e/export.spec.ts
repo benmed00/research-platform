@@ -9,9 +9,10 @@
  * @size 2.5 KB
  */
 import { test, expect } from '@playwright/test';
+import type { Page, BrowserContext } from '@playwright/test';
 
 test.describe('Export Functionality', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page }: { page: Page }) => {
     // Login first
     await page.goto('/auth/login');
     await page.fill('input[type="email"]', 'admin@research-platform.ma');
@@ -20,7 +21,7 @@ test.describe('Export Functionality', () => {
     await expect(page).toHaveURL(/\/dashboard/);
   });
 
-  test('should export species to Excel', async ({ page, context }) => {
+  test('should export species to Excel', async ({ page, context }: { page: Page; context: BrowserContext }) => {
     await page.goto('/dashboard/species');
     
     // Wait for page to load
@@ -49,7 +50,7 @@ test.describe('Export Functionality', () => {
     }
   });
 
-  test('should export missions to PDF', async ({ page }) => {
+  test('should export missions to PDF', async ({ page }: { page: Page }) => {
     await page.goto('/dashboard/missions');
     await page.waitForLoadState('networkidle');
     
@@ -72,7 +73,7 @@ test.describe('Export Functionality', () => {
     }
   });
 
-  test('should export to CSV', async ({ page }) => {
+  test('should export to CSV', async ({ page }: { page: Page }) => {
     await page.goto('/dashboard/species');
     await page.waitForLoadState('networkidle');
     

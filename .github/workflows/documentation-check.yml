@@ -1,0 +1,167 @@
+name: Documentation Quality & Freshness
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'docs/**'
+      - 'wiki/**'
+      - 'README.md'
+      - 'src/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'docs/**'
+      - 'wiki/**'
+      - 'README.md'
+      - 'src/**'
+  schedule:
+    # Run weekly on Sundays at 8 AM UTC
+    - cron: '0 8 * * 0'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  documentation-check:
+    name: Documentation Quality Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for file age checks
+      
+      - name: Check documentation completeness
+        run: |
+          echo "Checking documentation completeness..."
+          
+          # Check for README.md
+          if [ ! -f "README.md" ]; then
+            echo "⚠️  README.md is missing"
+            exit 1
+          fi
+          
+          # Check README length (should be substantial)
+          README_LINES=$(wc -l < README.md || echo "0")
+          if [ "$README_LINES" -lt 50 ]; then
+            echo "⚠️  README.md seems too short ($README_LINES lines)"
+          else
+            echo "✅ README.md is comprehensive ($README_LINES lines)"
+          fi
+          
+          # Check for essential documentation sections
+          REQUIRED_SECTIONS=("Installation" "Configuration" "Usage" "License")
+          MISSING_SECTIONS=0
+          
+          for section in "${REQUIRED_SECTIONS[@]}"; do
+            if ! grep -qi "$section" README.md; then
+              echo "⚠️  Missing section: $section"
+              MISSING_SECTIONS=$((MISSING_SECTIONS + 1))
+            fi
+          done
+          
+          if [ $MISSING_SECTIONS -eq 0 ]; then
+            echo "✅ All required README sections present"
+          fi
+      
+      - name: Check code documentation
+        run: |
+          echo "Checking code documentation..."
+          
+          # Check for documented public API routes
+          API_ROUTES=$(find src/app/api -name "route.ts" 2>/dev/null | wc -l || echo "0")
+          DOCUMENTED_ROUTES=$(grep -r "API" docs/ wiki/ 2>/dev/null | wc -l || echo "0")
+          
+          echo "## Code Documentation Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "- API routes: $API_ROUTES" >> $GITHUB_STEP_SUMMARY
+          echo "- Documented references: $DOCUMENTED_ROUTES" >> $GITHUB_STEP_SUMMARY
+          
+          # Check for JSDoc comments in complex functions
+          COMPLEX_FUNCTIONS=$(find src -name "*.ts" -o -name "*.tsx" | xargs grep -l "export.*function\|export.*const.*=" 2>/dev/null | head -10 | wc -l || echo "0")
+          DOCUMENTED_FUNCTIONS=$(find src -name "*.ts" -o -name "*.tsx" | xargs grep -l "/\*\*\|/\*\*" 2>/dev/null | wc -l || echo "0")
+          
+          echo "- Functions with documentation: $DOCUMENTED_FUNCTIONS / $COMPLEX_FUNCTIONS checked" >> $GITHUB_STEP_SUMMARY
+        continue-on-error: true
+      
+      - name: Check for broken links
+        run: |
+          echo "Checking for broken documentation links..."
+          
+          # Check markdown links
+          if command -v markdown-link-check &> /dev/null || npm list -g markdown-link-check &> /dev/null; then
+            find docs wiki -name "*.md" -type f | while read -r file; do
+              markdown-link-check "$file" --quiet || echo "⚠️  Broken links in $file"
+            done
+          else
+            echo "ℹ️  markdown-link-check not available, skipping link check"
+            echo "Install with: npm install -g markdown-link-check"
+          fi
+        continue-on-error: true
+      
+      - name: Check documentation freshness
+        run: |
+          echo "Checking documentation freshness..."
+          
+          # Check last modification dates
+          OLD_DOCS=0
+          CURRENT_DATE=$(date +%s)
+          MAX_AGE=$((90 * 24 * 60 * 60))  # 90 days in seconds
+          
+          find docs wiki -name "*.md" -type f | while read -r file; do
+            FILE_DATE=$(git log -1 --format="%ct" -- "$file" 2>/dev/null || echo "0")
+            if [ "$FILE_DATE" != "0" ]; then
+              AGE=$((CURRENT_DATE - FILE_DATE))
+              if [ "$AGE" -gt "$MAX_AGE" ]; then
+                DAYS_OLD=$((AGE / (24 * 60 * 60)))
+                echo "⚠️  Stale documentation: $file (last updated $DAYS_OLD days ago)"
+                OLD_DOCS=$((OLD_DOCS + 1))
+              fi
+            fi
+          done
+          
+          if [ $OLD_DOCS -eq 0 ]; then
+            echo "✅ All documentation is relatively fresh"
+          else
+            echo "Found $OLD_DOCS potentially stale documentation files"
+          fi
+        continue-on-error: true
+      
+      - name: Documentation summary
+        if: always()
+        run: |
+          echo "## Documentation Quality Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Documentation checks completed" >> $GITHUB_STEP_SUMMARY
+          echo "- 📚 See detailed results above" >> $GITHUB_STEP_SUMMARY
+
+  changelog-check:
+    name: Changelog Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check for CHANGELOG
+        run: |
+          echo "Checking for changelog file..."
+          
+          if [ -f "CHANGELOG.md" ] || [ -f "docs/CHANGELOG.md" ]; then
+            echo "✅ Changelog file found"
+            
+            # Check if recent commits have changelog entries
+            RECENT_COMMITS=$(git log --oneline --since="7 days ago" | wc -l)
+            RECENT_CHANGELOG_UPDATES=$(git log --since="7 days ago" -- CHANGELOG.md docs/CHANGELOG.md 2>/dev/null | wc -l || echo "0")
+            
+            if [ "$RECENT_COMMITS" -gt 5 ] && [ "$RECENT_CHANGELOG_UPDATES" -eq 0 ]; then
+              echo "⚠️  Many recent commits but no changelog updates"
+            fi
+          else
+            echo "⚠️  No CHANGELOG.md found"
+            echo "Consider adding a changelog to track project changes"
+          fi
+        continue-on-error: true
