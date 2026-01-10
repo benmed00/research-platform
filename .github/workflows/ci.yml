@@ -30,7 +30,7 @@ jobs:
         run: npm ci --prefer-offline --no-audit
       
       - name: Run linter
-        run: npm run lint
+        run: npx eslint . --ext .ts,.tsx --max-warnings 0
         continue-on-error: false
       
       - name: Type check
