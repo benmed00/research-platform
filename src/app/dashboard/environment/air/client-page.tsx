@@ -175,6 +175,8 @@ export default function AirQualityPageClient() {
               currentPage={currentPage}
               totalPages={Math.ceil(totalItems / pageSize)}
               onPageChange={setCurrentPage}
+              pageSize={pageSize}
+              totalItems={totalItems}
             />
           </div>
         )}
