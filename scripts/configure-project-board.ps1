@@ -48,11 +48,17 @@ Write-Host ""
 
 # Step 2: List projects to find the Research Platform project
 Write-Host "📋 Step 2: Finding Research Platform project..." -ForegroundColor Cyan
-$projects = gh project list --owner benmed00 --limit 20 2>&1 | ConvertFrom-Json
+$projectsJson = gh project list --owner benmed00 --limit 20 --format json
 
-if ($LASTEXITCODE -ne 0 -or -not $projects) {
+if ($LASTEXITCODE -ne 0 -or -not $projectsJson) {
     Write-Host "❌ Could not list projects. Make sure the project exists." -ForegroundColor Red
-    Write-Host "Error: $projects" -ForegroundColor Red
+    exit 1
+}
+
+try {
+    $projects = $projectsJson | ConvertFrom-Json
+} catch {
+    Write-Host "❌ Failed to parse project list JSON output." -ForegroundColor Red
     exit 1
 }
 

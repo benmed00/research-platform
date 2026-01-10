@@ -9,7 +9,19 @@ $projectNumber = 5
 
 # Get all open issues
 Write-Host "Fetching open issues..." -ForegroundColor Cyan
-$issues = gh issue list --repo benmed00/research-platform --state open --json number,title --limit 50 | ConvertFrom-Json
+$issuesJson = gh issue list --repo benmed00/research-platform --state open --json number,title --limit 50
+
+if ($LASTEXITCODE -ne 0 -or -not $issuesJson) {
+    Write-Host "Failed to fetch issues." -ForegroundColor Red
+    exit 1
+}
+
+try {
+    $issues = $issuesJson | ConvertFrom-Json
+} catch {
+    Write-Host "Failed to parse issues JSON output." -ForegroundColor Red
+    exit 1
+}
 
 if (-not $issues) {
     Write-Host "No open issues found." -ForegroundColor Yellow

@@ -59,23 +59,26 @@ Write-Host ""
 Write-Host "📦 Creating project board..." -ForegroundColor Cyan
 
 # Create the project
-$projectOutput = gh project create --owner benmed00 --title "Research Platform Development" 2>&1
+$projectCreateOutput = gh project create --owner benmed00 --title "Research Platform Development" --format json 2>&1
 
-if ($LASTEXITCODE -eq 0) {
+try {
+    $createdProject = $projectCreateOutput | ConvertFrom-Json
+    $projectNumber = $createdProject.number
+} catch {
+    $projectNumber = $null
+}
+
+if ($LASTEXITCODE -eq 0 -and $projectNumber) {
     Write-Host "✅ Project board created successfully!" -ForegroundColor Green
     
-    # Try to extract project number
-    if ($projectOutput -match '"number":\s*(\d+)') {
-        $projectNumber = $matches[1]
-        Write-Host "📊 Project number: $projectNumber" -ForegroundColor Cyan
-        Write-Host ""
-        Write-Host "🔗 Linking project to repository..." -ForegroundColor Cyan
-        gh project link $projectNumber --owner benmed00 --repo research-platform 2>&1 | Out-Null
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "✅ Project linked to repository" -ForegroundColor Green
-        } else {
-            Write-Host "⚠️  Could not auto-link. Please link manually." -ForegroundColor Yellow
-        }
+    Write-Host "📊 Project number: $projectNumber" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "🔗 Linking project to repository..." -ForegroundColor Cyan
+    gh project link $projectNumber --owner benmed00 --repo research-platform 2>&1 | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "✅ Project linked to repository" -ForegroundColor Green
+    } else {
+        Write-Host "⚠️  Could not auto-link. Please link manually." -ForegroundColor Yellow
     }
     
     Write-Host ""
@@ -89,7 +92,9 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host ""
 } else {
     Write-Host "❌ Failed to create project board" -ForegroundColor Red
-    Write-Host $projectOutput -ForegroundColor Red
+    if ($projectCreateOutput) {
+        Write-Host $projectCreateOutput -ForegroundColor Red
+    }
     Write-Host ""
     Write-Host "💡 You can create it manually:" -ForegroundColor Cyan
     Write-Host "   https://github.com/benmed00/research-platform/projects/new" -ForegroundColor Cyan
