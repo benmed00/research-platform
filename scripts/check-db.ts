@@ -117,7 +117,9 @@ async function checkDatabase() {
       }
     } catch (error: any) {
       console.log(`  ⚠️  Impossible de vérifier les données environnementales: ${error.message}`);
-      console.log("  → Si le Prisma Client semble désynchronisé, exécutez: npm run db:fix-client");
+      console.log("  → Si le Prisma Client semble désynchronisé :");
+      console.log("     - Windows: npm run db:fix-client");
+      console.log("     - Linux/macOS: rm -rf node_modules/.prisma && npm run db:generate");
     }
 
   } catch (error: any) {

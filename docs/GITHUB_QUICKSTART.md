@@ -17,6 +17,9 @@ All files for your GitHub repository have been created. Here's what to do next:
 gh auth login
 
 # 3. Create repository
+# Note:
+# - Windows: this will use Windows PowerShell automatically
+# - Linux/macOS: requires PowerShell 7+ (`pwsh`) installed
 npm run github:create
 ```
 

@@ -153,6 +153,9 @@ npm run db:push && npm run db:seed
 npm run db:fix-client
 ```
 
+> Note: `npm run db:fix-client` runs a PowerShell script. It’s mainly useful on **Windows** for Prisma EPERM/locked-file issues.
+> On Linux/macOS, you usually just need `npm run db:generate` (or remove `node_modules/.prisma` and regenerate).
+
 ## 📝 Notes techniques
 
 ### Optimisation API

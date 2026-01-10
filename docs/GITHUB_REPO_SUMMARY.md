@@ -84,6 +84,8 @@
 gh auth login
 
 # Run the PowerShell script
+# - Windows: uses Windows PowerShell by default
+# - Linux/macOS: requires PowerShell 7+ (`pwsh`) installed
 npm run github:create
 
 # Or use the generated commands
