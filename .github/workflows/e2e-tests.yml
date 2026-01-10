@@ -63,7 +63,13 @@ jobs:
       
       - name: Start application server
         run: |
-          npm start &
+          if [ -f ".next/standalone/server.js" ]; then
+            echo "Starting standalone server..."
+            node .next/standalone/server.js &
+          else
+            echo "Starting with npm start..."
+            npm start &
+          fi
           echo "Waiting for server to start..."
           npx wait-on http://localhost:3000 --timeout 60000 || exit 1
         env:
@@ -142,7 +148,13 @@ jobs:
       
       - name: Run accessibility tests
         run: |
-          npm start &
+          if [ -f ".next/standalone/server.js" ]; then
+            echo "Starting standalone server..."
+            node .next/standalone/server.js &
+          else
+            echo "Starting with npm start..."
+            npm start &
+          fi
           npx wait-on http://localhost:3000 --timeout 60000
           
           # Run basic accessibility checks with axe-core via Playwright
