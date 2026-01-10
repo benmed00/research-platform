@@ -16,6 +16,7 @@
     "db:reset": "prisma migrate reset",
     "db:check": "ts-node --project tsconfig.seed.json scripts/check-db.ts",
     "db:fix-client": "powershell -ExecutionPolicy Bypass -File scripts/fix-prisma-client.ps1",
+    "test:suite": "powershell -ExecutionPolicy Bypass -File scripts/run-tests-and-monitoring.ps1",
     "postinstall": "prisma generate",
     "headers:add": "ts-node --project tsconfig.seed.json scripts/add-file-headers.ts",
     "headers:update": "ts-node --project tsconfig.seed.json scripts/add-file-headers.ts",
