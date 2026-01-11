@@ -21,11 +21,17 @@
 # misc
 .DS_Store
 *.pem
+*.swp
+*~
+*.tmp
+*.cache
+.cache/
 
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
 
 # local env files
 .env*.local
@@ -43,3 +49,26 @@ next-env.d.ts
 
 # uploads
 /public/uploads
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-*
+*.code-workspace
+
+# OS files
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
+
+# PowerShell
+*.ps1.bak
+*.ps1.tmp
